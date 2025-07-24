@@ -2,7 +2,7 @@ import {
   changeTaskStatus,
   createTask,
   customCreateTask,
-} from "@/lib/api/client";
+} from "@/services/api/client";
 import {
   ChangeTaskStatusParams,
   CreateTaskParams,

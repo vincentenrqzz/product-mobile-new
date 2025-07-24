@@ -1,22 +1,7 @@
 import { API } from "@/constants/api";
-import { FileData, FileUploadResponse } from "@/types/File";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios, { AxiosInstance, AxiosProgressEvent, AxiosResponse } from "axios";
-
-const fileClient: AxiosInstance = axios.create({
-  baseURL: API.BASE_URL.FILE,
-  headers: {
-    "x-request-context": "mobile",
-  },
-});
-
-fileClient.interceptors.request.use(async (config) => {
-  const tenant = await AsyncStorage.getItem("tenant");
-  if (tenant) {
-    config.headers["x-tenant-name"] = tenant;
-  }
-  return config;
-});
+import { FileData, FileUploadResponse } from "@/types/file";
+import { AxiosProgressEvent, AxiosResponse } from "axios";
+import { fileClient } from "../fileClient";
 
 export const uploadFile = async (
   token: string,

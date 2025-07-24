@@ -1,5 +1,5 @@
-import { uploadFile } from "@/lib/api/fileClient";
-import { FileData, FileUploadResponse } from "@/types/File";
+import { uploadFile } from "@/services/api/fileClient";
+import { FileData, FileUploadResponse } from "@/types/file";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface UploadFileParams {

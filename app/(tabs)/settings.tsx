@@ -10,7 +10,7 @@ import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { useAuth } from "@/screens/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Settings() {
   const { handleLogout, isLoading } = useAuth();
