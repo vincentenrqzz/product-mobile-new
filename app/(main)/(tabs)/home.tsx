@@ -7,16 +7,7 @@ import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 
 export default function Home() {
-  // const { token } = useAuth();
-  // const [userData, setUserData] useState(null)
-  // const getUser = useGetUser(token???)
-  // const initUserData = async () => {
-  //   const userData = getUser???
-  // }
-
-  // useEffect(() => {
-
-  // })
+  console.log('sdasd')
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}

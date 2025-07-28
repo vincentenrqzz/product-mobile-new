@@ -1,4 +1,5 @@
 import { useLogin, useSubmitOtp } from '@/queries/useAuth'
+import useAuthStore from '@/store/auth'
 import { OtpChallenge } from '@/types/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
@@ -38,6 +39,7 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const { token } = useAuthStore()
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -115,9 +117,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       setIsAuthenticated(true)
 
       console.log('Attempting navigation to tabs')
-      setTimeout(() => {
-        router.replace('/(tabs)/home')
-      }, 100)
     } catch (error: any) {
       setCredentials({ username: '', password: '' })
       setOtpChallenge(null)

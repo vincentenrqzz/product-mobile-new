@@ -1,5 +1,5 @@
-import { AuthProvider } from '@/contexts/AuthContext'
 import { useColorScheme } from '@/hooks/useColorScheme'
+import useAuthStore from '@/store/auth'
 import {
   Montserrat_400Regular,
   Montserrat_500Medium,
@@ -33,13 +33,13 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const colorScheme = useColorScheme()
+  const { isLoggedIn } = useAuthStore()
   const [fontsLoaded, fontError] = useFonts({
     'Montserrat-Regular': Montserrat_400Regular,
     'Montserrat-Medium': Montserrat_500Medium,
     'Montserrat-SemiBold': Montserrat_600SemiBold,
     'Montserrat-Bold': Montserrat_700Bold,
   })
-
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync()
@@ -53,29 +53,23 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <AuthProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: {
-                backgroundColor: colorScheme === 'dark' ? '#4B4376' : '#F7F9FA',
-              },
-            }}
-          >
-            <Stack.Screen
-              name="login"
-              options={{
-                contentStyle: {
-                  backgroundColor:
-                    colorScheme === 'dark' ? '#4B4376' : '#F7F9FA',
-                },
-              }}
-            />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        </AuthProvider>
+        {/* <AuthProvider> remove used another simpler way to auth user */}
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: {
+              backgroundColor: colorScheme === 'dark' ? '#4B4376' : '#F7F9FA',
+            },
+          }}
+        >
+          <Stack.Screen name="(auth)" />
+          <Stack.Protected guard={isLoggedIn}>
+            <Stack.Screen name="(main)" />
+          </Stack.Protected>
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+        {/* </AuthProvider> */}
       </ThemeProvider>
     </QueryClientProvider>
   )

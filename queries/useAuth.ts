@@ -6,6 +6,7 @@ import {
   submitOtp,
   submitResetPassword,
 } from '@/services/api/endpoints/auth'
+import useAuthStore from '@/store/auth'
 import {
   ChangePasswordInput,
   ForgotPasswordInput,
@@ -20,12 +21,13 @@ const GC_TIME = 10 * 60 * 1000
 
 export const useLogin = () => {
   const queryClient = useQueryClient()
-
+  const { setAuthState } = useAuthStore()
   return useMutation<any, Error, { username: string; password: string }>({
     mutationFn: ({ username, password }) => login(username, password),
     onSuccess: (data, variables) => {
-      // console.log("data", data);
-      // console.log("variables", variables);
+      const { IdToken, ExpiresIn } = data.AuthenticationResult
+      console.log('data', data)
+      setAuthState(true, IdToken)
       queryClient.invalidateQueries({ queryKey: ['auth'] })
     },
     onError: (error) => {

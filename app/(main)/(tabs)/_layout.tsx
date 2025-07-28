@@ -1,12 +1,7 @@
 import * as Haptics from 'expo-haptics'
-import { Redirect, Tabs } from 'expo-router'
+import { Tabs } from 'expo-router'
 import React from 'react'
-import {
-  ActivityIndicator,
-  Pressable,
-  useWindowDimensions,
-  View,
-} from 'react-native'
+import { Pressable, useWindowDimensions, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -14,7 +9,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { useAuth } from '@/contexts/AuthContext'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { Ionicons } from '@expo/vector-icons'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
@@ -47,7 +41,7 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
 
   return (
     <View
-      className="absolute bottom-0 left-0 right-0 px-4 pb-6"
+      className="px-auto absolute bottom-0 left-0 right-0 pb-20"
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout
         console.log('Container Width:', width)
@@ -58,8 +52,8 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
     >
       <View
         className={`
-          mx-auto w-full max-w-sm overflow-hidden rounded-3xl
-          ${isDark ? 'bg-gray-900/80' : 'bg-white/80'}
+          mx-auto w-full max-w-sm overflow-hidden rounded-3xl px-2
+          ${isDark ? 'bg-gray-900/80' : 'bg-white'}
         `}
         style={{
           shadowColor: '#000',
@@ -76,12 +70,12 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         />
         <View className="relative h-16 flex-row">
-          <AnimatedIndicator
+          {/* <AnimatedIndicator
             activeIndex={state.index}
             tabCount={state.routes.length}
             isDark={isDark}
             containerWidth={containerWidth || 300}
-          />
+          /> */}
           {state.routes.map((route, index) => {
             // const { options } = descriptors[route.key]
             const isFocused = state.index === index
@@ -243,24 +237,6 @@ const TabItem: React.FC<TabItemProps> = ({
 
 // Main Tab Layout Component
 export default function TabLayout() {
-  const { isLoading, isAuthenticated } = useAuth()
-  const colorScheme = useColorScheme()
-
-  if (isLoading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <ActivityIndicator
-          size="large"
-          color={colorScheme === 'dark' ? '#60A5FA' : '#3B82F6'}
-        />
-      </View>
-    )
-  }
-
-  if (!isAuthenticated) {
-    return <Redirect href="/login" />
-  }
-
   return (
     <Tabs
       tabBar={(props) => <SimpleAnimatedTabBar {...props} />}
