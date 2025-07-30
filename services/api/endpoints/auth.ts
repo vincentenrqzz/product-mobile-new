@@ -60,18 +60,3 @@ export const submitChangePassword = async (
   )
   return response.data
 }
-
-export const getUser = async (token: string): Promise<any> => {
-  if (!token) return
-
-  const response: AxiosResponse<any> = await client.get(
-    API.ENDPOINTS.USER.GET,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
-  )
-
-  return response.data
-}

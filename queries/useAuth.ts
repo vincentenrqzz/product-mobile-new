@@ -1,5 +1,4 @@
 import {
-  getUser,
   login,
   submitChangePassword,
   submitForgotPassword,
@@ -14,10 +13,7 @@ import {
   OtpResponse,
   ResetPasswordInput,
 } from '@/types/auth'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-
-const STALE_TIME = 5 * 60 * 1000
-const GC_TIME = 10 * 60 * 1000
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 export const useLogin = () => {
   const queryClient = useQueryClient()
@@ -96,17 +92,5 @@ export const useSubmitChangePassword = () => {
       console.error('Failed to change password:', error)
       throw new Error('customError') // Preserve original behavior
     },
-  })
-}
-
-export const useGetUser = (token: string) => {
-  const queryClient = useQueryClient()
-
-  return useQuery<any, Error>({
-    queryKey: ['user', token],
-    queryFn: () => getUser(token),
-    enabled: !!token,
-    staleTime: STALE_TIME,
-    gcTime: GC_TIME,
   })
 }

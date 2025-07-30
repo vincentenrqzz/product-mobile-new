@@ -1,13 +1,19 @@
 import { useAppTheme } from '@/hooks/useAppTheme'
 import React, { JSX } from 'react'
-import { TextInput, TextInputProps, View } from 'react-native'
+import {
+  StyleProp,
+  TextInput,
+  TextInputProps,
+  View,
+  ViewStyle,
+} from 'react-native'
 
-interface InputFieldProps extends TextInputProps {
-  [x: string]: any
+interface InputFieldProps extends Omit<TextInputProps, 'style'> {
   leftElement?: JSX.Element
   onChangeText: (text: string) => void
   rightElement?: JSX.Element
   secureTextEntry?: boolean
+  style?: StyleProp<ViewStyle> // Style for the View container
 }
 
 const InputField: React.FC<InputFieldProps> = ({
@@ -15,16 +21,14 @@ const InputField: React.FC<InputFieldProps> = ({
   onChangeText,
   rightElement,
   secureTextEntry = false,
+  style, // Accept the className prop
   ...props
 }) => {
   const { colors } = useAppTheme()
-
   return (
     <View
-      className={`flex-row items-center rounded-lg border p-3`}
-      style={{
-        backgroundColor: colors.inputBackground,
-      }}
+      className={`flex-row items-center  rounded-lg px-3`}
+      style={[{ backgroundColor: colors.inputBackground }, style]}
     >
       {leftElement}
       <TextInput

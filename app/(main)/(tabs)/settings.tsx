@@ -1,32 +1,25 @@
-import { Image } from 'expo-image'
 import { StyleSheet, Text, TouchableOpacity } from 'react-native'
 
 import { HelloWave } from '@/components/HelloWave'
 import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
+import AppLogo from '@/components/ui/AppLogo'
 import useAuthStore from '@/store/auth'
 
 export default function Settings() {
-  const { setAuthState } = useAuthStore()
+  const { logout } = useAuthStore()
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }
+      headerContent={<AppLogo />}
     >
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Settings</ThemedText>
         <HelloWave />
       </ThemedView>
-      <TouchableOpacity
-        style={[styles.button]}
-        onPress={() => setAuthState(false, '')}
-      >
+      <TouchableOpacity style={[styles.button]} onPress={() => logout()}>
         {/* {isLoading ? (
           <ActivityIndicator color="white" />
         ) : (

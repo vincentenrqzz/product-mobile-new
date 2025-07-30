@@ -1,27 +1,38 @@
-import { Image } from 'expo-image'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { HelloWave } from '@/components/HelloWave'
 import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
-import { ThemedView } from '@/components/ThemedView'
+import AppLogo from '@/components/ui/AppLogo'
+import { useGetUserGroupData } from '@/queries/useUserInfo'
+import useUserInfoStore from '@/store/userInfo'
+import { useEffect } from 'react'
 
 export default function Home() {
-  console.log('sdasd')
+  const { userInfo, userSettings, setUserGroup } = useUserInfoStore()
+  const matchLogo = userSettings?.find((item) => item.key === 'tenantLogo')
+  const {
+    data: userGroup,
+    isLoading: userGroupIsLoading,
+    isError: userGroupIsError,
+  } = useGetUserGroupData()
+
+  useEffect(() => {
+    if (userGroup) {
+      setUserGroup(userGroup)
+    }
+  }, [userGroup])
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }
+      headerContent={<AppLogo />}
     >
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Home</ThemedText>
+      <View style={styles.titleContainer}>
+        <ThemedText type="title">
+          Hello {`${userInfo?.name} ${userInfo?.family_name}`}
+        </ThemedText>
         <HelloWave />
-      </ThemedView>
+      </View>
     </ParallaxScrollView>
   )
 }
@@ -29,7 +40,6 @@ export default function Home() {
 const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
   stepContainer: {
@@ -37,8 +47,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reactLogo: {
-    height: 178,
-    width: 290,
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
     bottom: 0,
     left: 0,
     position: 'absolute',

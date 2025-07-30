@@ -17,7 +17,6 @@ export default function login() {
   const [envState, setEnvState] = useState('DEV')
   const { colors, isDark } = useAppTheme()
   const router = useRouter()
-
   const onLogin = useLogin()
 
   useEffect(() => {
@@ -118,7 +117,7 @@ export default function login() {
               className="mt-4 flex-row justify-center opacity-70"
               style={{ gap: 8 }}
             >
-              {['DEV', 'STAGING', 'PROD'].map((env) => (
+              {['DEV', 'STAGING', 'QA', 'PROD'].map((env) => (
                 <Pressable
                   key={env}
                   onPress={() => handleEnvSelection(env)}

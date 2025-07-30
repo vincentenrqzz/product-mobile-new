@@ -14,6 +14,7 @@ export const useAppTheme = () => {
     inputText: isDark ? '#E0F7FA' : '#333',
     placeholderText: isDark ? 'rgba(224, 247, 250, 0.5)' : '#999',
     cardBackground: isDark ? 'rgba(255, 255, 255, 0.05)' : '#FFFFFF',
+    dark: isDark ? '#FFFFFF' : '#000000',
     // Add more colors as needed
   }
 
