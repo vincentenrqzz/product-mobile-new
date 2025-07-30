@@ -1,5 +1,5 @@
 import type { PropsWithChildren, ReactElement } from 'react'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedRef,
@@ -10,6 +10,7 @@ import Animated, {
 import { ThemedView } from '@/components/ThemedView'
 import { useBottomTabOverflow } from '@/components/ui/TabBarBackground'
 import { useColorScheme } from '@/hooks/useColorScheme'
+import { useThemeColor } from '@/hooks/useThemeColor'
 
 const HEADER_HEIGHT = 150
 
@@ -27,6 +28,7 @@ export default function ParallaxScrollView({
   const scrollRef = useAnimatedRef<Animated.ScrollView>()
   const scrollOffset = useScrollViewOffset(scrollRef)
   const bottom = useBottomTabOverflow()
+  const backgroundColor = useThemeColor({ light: '', dark: '' }, 'background')
   const headerAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -69,9 +71,9 @@ export default function ParallaxScrollView({
         >
           {headerContent}
         </Animated.View>
-        <ThemedView style={styles.content} className="pb-32 ">
+        <View style={[{ backgroundColor }, styles.content]} className="pb-32 ">
           {children}
-        </ThemedView>
+        </View>
       </Animated.ScrollView>
     </ThemedView>
   )
