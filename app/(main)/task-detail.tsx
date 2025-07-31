@@ -8,7 +8,7 @@ const TaskDetail = () => {
   //builtin
   const router = useRouter()
   const params = useLocalSearchParams()
-  const { task } = params
+  const { task, fromListItemTab, statusLabels } = params
   console.log('params', params)
   return (
     <ParallaxScrollView>
