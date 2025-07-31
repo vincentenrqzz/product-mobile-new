@@ -21,12 +21,81 @@ interface TaskDetailsIcons {
   mapIcon: string
 }
 
+export type Task = {
+  __v: number
+  _id: string
+  archivedAt: string | null
+  assignedTo: AssignedTo
+  createdAt: string
+  executionEndDate: string
+  executionStartDate: string
+  favoriteTask: boolean
+  form: FormItem[]
+  groupName: string
+  isArchived: boolean
+  lastUpdatedAt: string
+  lastUpdatedBy: User
+  newTaskUuid: string
+  statusId: string
+  taskDetails: TaskDetail[]
+  taskId: number
+  taskType: string
+  typeId: string
+  urgentTask: boolean
+}
+
+type AssignedTo = {
+  agentGroups: string
+  agentName: string
+  agentSub: string
+}
+
+type User = {
+  userGroups: string
+  userName: string
+  userSub: string
+}
+
+type FormItem = {
+  autocompleteKey: string | null
+  autocompleteTable: string | null
+  captureMode: any[]
+  defaultValue: string
+  description: string
+  displayValue: string
+  inputType: string
+  itemLimit: number
+  key: string
+  label: string
+  layout: string
+  note: string
+  placeholder: string
+  rules: any[]
+  taskDetailKey: string | null
+  uniqueId: string
+  validation: string
+  value: string | null
+  videoDurationLimit: number
+}
+
+type TaskDetail = {
+  inputType: string
+  key: string
+  label: string
+  order: number | null
+  orderMobile: number | null
+  showInTable: boolean
+  value: string | null
+  format?: string
+  fromDefaultProp?: boolean
+}
+
 export interface TaskList {
   googleApiKey: string
   mobileTaskDetailsNumber: string
   page: number
   pageSize: number
-  taskDetailsIcons: TaskDetailsIcons
+  taskDetailsIcons: any
   tasks: any[]
   totalDocuments: number
 }
@@ -72,10 +141,16 @@ interface AuthState {
   taskStatuses: TaskStatuses | []
   taskTypes: TaskTypes | []
   taskDetails: TaskDetails | []
+  pendingTasks: any[] | []
+  successTaskIds: any[]
+  tasks: Task[] | []
   setTaskTypes: (data: any) => void
   setTaskList: (data: TaskList) => void
   setTaskStatuses: (data: TaskStatuses) => void
   setTaskDetails: (data: TaskDetails) => void
+  setPendingTasks: (data: any[]) => void
+  setTasks: (data: any[]) => void
+  setSuccessTaskIds: (data: any[]) => void
   clearAll: () => void // Added clearAll method to reset the store state and clear AsyncStorage
 }
 
@@ -87,6 +162,9 @@ const useTaskStore = create<AuthState>()(
       taskList: null,
       taskTypes: [],
       taskDetails: [],
+      pendingTasks: [],
+      tasks: [],
+      successTaskIds: [],
       setTaskTypes: (data) => {
         set({ taskTypes: data })
       },
@@ -94,7 +172,6 @@ const useTaskStore = create<AuthState>()(
         if (!data) {
           return
         }
-        console.log('data', data)
         const { taskTypes } = get() // Access taskTypes from the store's state
 
         set({ taskList: data })
@@ -115,9 +192,19 @@ const useTaskStore = create<AuthState>()(
 
           return item
         })
-        // Updating the task list with the updated tasks
-        set({ taskList: { ...data, tasks: data.tasks } })
+
+        set({ tasks: data.tasks })
       },
+      setPendingTasks: (data) => {
+        set({ pendingTasks: data })
+      },
+      setSuccessTaskIds: (data) => {
+        set({ successTaskIds: data })
+      },
+      setTasks: (data) => {
+        set({ tasks: data })
+      },
+
       setTaskStatuses: (data) => {
         set({ taskStatuses: data })
       },

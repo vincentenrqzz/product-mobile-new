@@ -22,7 +22,7 @@ const BASE_URLS = {
 }
 
 export const API = {
-  BASE_URL: BASE_URLS.dev,
+  BASE_URL: BASE_URLS.qa,
   ENDPOINTS: {
     USER: {
       POST: 'auth/login',

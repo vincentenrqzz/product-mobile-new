@@ -4,10 +4,11 @@ import type { FormikValues } from 'formik'
 import type { FC, JSX } from 'react'
 
 import React from 'react'
-import { Text, TextInputProps, View } from 'react-native'
+import { Text, View } from 'react-native'
 import InputField from '../InputField'
 
-interface FormInputProps extends TextInputProps {
+interface FormInputProps {
+  [key: string]: any
   editable?: boolean
   formik: FormikValues
   leftElement?: JSX.Element

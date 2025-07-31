@@ -12,7 +12,6 @@ export const getUserGroupData = async (groupId: string): Promise<any> => {
     ':id',
     groupId,
   )
-  console.log('getUserGroupEndpoint', getUserGroupEndpoint)
   const response: AxiosResponse<any> = await client.get(getUserGroupEndpoint)
 
   // Check if response.data is a string and looks like HTML

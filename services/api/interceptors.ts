@@ -15,7 +15,6 @@ client.interceptors.request.use(
     if (userInfo?.tenant) {
       config.headers['x-tenant-name'] = userInfo.tenant
     }
-    console.log('config.headers', config.headers)
     return config
   },
   (error) => {

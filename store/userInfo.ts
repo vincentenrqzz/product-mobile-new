@@ -68,7 +68,6 @@ const useUserInfoStore = create<AuthState>()(
         set({ userGroup: data })
       },
       setUserSettings: (data) => {
-        console.log('setUserSettings', data)
         set({ userSettings: data })
       },
       // Function to clear all state and AsyncStorage data

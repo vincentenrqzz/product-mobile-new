@@ -1,4 +1,4 @@
-import { GC_TIME, STALE_TIME } from '@/lib/utils'
+import { GC_TIME, STALE_TIME } from '@/lib/constants'
 import {
   getUser,
   getUserGroupData,
@@ -32,7 +32,6 @@ export const useGetUserGroupData = () => {
         const uniqueGroups = [...new Set(groupNames)]
         const groupDetails = await Promise.all(
           uniqueGroups.map(async (groupName: string) => {
-            console.log('groupNames', groupNames)
             const group = await getUserGroupData(groupName)
             return group?.[0] ?? null
           }),

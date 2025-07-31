@@ -11,7 +11,6 @@ export const getTaskTypes = async (): Promise<any> => {
       },
     },
   )
-  console.log('response.data', response.data)
   // Check if response.data is a string and looks like HTML
   if (
     typeof response.data === 'string' &&

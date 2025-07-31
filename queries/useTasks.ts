@@ -1,4 +1,4 @@
-import { GC_TIME, STALE_TIME } from '@/lib/utils'
+import { GC_TIME, STALE_TIME } from '@/lib/constants'
 import { getTaskDetails } from '@/services/api/endpoints/taskdetails'
 import {
   changeTaskStatus,

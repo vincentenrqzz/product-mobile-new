@@ -14,7 +14,7 @@ import { useEffect } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 
 export default function AppLayout() {
-  const { isLoggedIn, token, setAuthState } = useAuthStore()
+  const { isLoggedIn, token, setAuthState, logout } = useAuthStore()
   const { setUserInfo, setUserGroup, setUserSettings } = useUserInfoStore()
   const { setTaskTypes, setTaskList, setTaskStatuses, setTaskDetails } =
     useTaskStore()
@@ -30,7 +30,6 @@ export default function AppLayout() {
   if (!isLoggedIn) {
     return <Redirect href="/(auth)/login" />
   }
-  console.log('user', user)
   const queryResults = useQueries({
     queries: [
       {
@@ -107,7 +106,6 @@ export default function AppLayout() {
       { data: forms || [], setData: setForms },
     ]
 
-    // console.log('dataMap', dataMap)
     dataMap.forEach(({ data, setData }) => {
       if (data) {
         setData(data)
@@ -176,6 +174,7 @@ export default function AppLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="task-detail" options={{ headerShown: false }} />
     </Stack>
   )
 }

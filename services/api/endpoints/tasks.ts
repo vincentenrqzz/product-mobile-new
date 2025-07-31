@@ -10,6 +10,7 @@ export const getAllTasks = async () => {
       'x-request-context': 'tasks',
     },
   })
+  console.log('response', response.data)
   // Check if response.data is a string and looks like HTML
   if (
     typeof response.data === 'string' &&

@@ -44,7 +44,10 @@ type Forms = TaskForm[]
 
 interface AuthState {
   forms: Forms | []
+  dialerClicks: any[]
   setForms: (data: Forms) => void
+  setDialerClicks: (data: any) => void
+
   clearAll: () => void
 }
 
@@ -53,8 +56,12 @@ const useFormsStore = create<AuthState>()(
   persist(
     (set) => ({
       forms: [],
+      dialerClicks: [],
       setForms: (data) => {
         set({ forms: data })
+      },
+      setDialerClicks: (data) => {
+        set({ dialerClicks: data })
       },
       clearAll: async () => {
         await AsyncStorage.clear() // Clear all data from AsyncStorage

@@ -1,4 +1,4 @@
-import { GC_TIME, STALE_TIME } from '@/lib/utils'
+import { GC_TIME, STALE_TIME } from '@/lib/constants'
 import { getForms } from '@/services/api/endpoints/forms'
 import useUserInfoStore from '@/store/userInfo'
 import { useQuery, useQueryClient } from '@tanstack/react-query'

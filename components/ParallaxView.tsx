@@ -1,14 +1,8 @@
 import type { PropsWithChildren, ReactElement } from 'react'
-import { StyleSheet, View } from 'react-native'
-import Animated, {
-  interpolate,
-  useAnimatedRef,
-  useAnimatedStyle,
-  useScrollViewOffset,
-} from 'react-native-reanimated'
+import { StyleSheet } from 'react-native'
+import Animated from 'react-native-reanimated'
 
 import { ThemedView } from '@/components/ThemedView'
-import { useBottomTabOverflow } from '@/components/ui/TabBarBackground'
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { useThemeColor } from '@/hooks/useThemeColor'
 
@@ -19,46 +13,17 @@ type Props = PropsWithChildren<{
   headerBackgroundColor?: { dark: string; light: string }
 }>
 
-export default function ParallaxScrollView({
+export default function ParallaxView({
   children,
   headerContent,
   headerBackgroundColor,
 }: Props) {
   const colorScheme = useColorScheme() ?? 'light'
-  const scrollRef = useAnimatedRef<Animated.ScrollView>()
-  const scrollOffset = useScrollViewOffset(scrollRef)
-  const bottom = useBottomTabOverflow()
   const backgroundColor = useThemeColor({ light: '', dark: '' }, 'background')
-  const headerAnimatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateY: interpolate(
-            scrollOffset.value,
-            [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
-            [-HEADER_HEIGHT / 2, 0, HEADER_HEIGHT * 0.75],
-          ),
-        },
-        {
-          scale: interpolate(
-            scrollOffset.value,
-            [-HEADER_HEIGHT, 0, HEADER_HEIGHT],
-            [2, 1, 1],
-          ),
-        },
-      ],
-    }
-  })
 
   return (
     <ThemedView style={styles.container}>
-      <Animated.ScrollView
-        ref={scrollRef}
-        scrollEventThrottle={16}
-        scrollIndicatorInsets={{ bottom }}
-        contentContainerStyle={{ paddingBottom: bottom }}
-        showsVerticalScrollIndicator={false}
-      >
+      <Animated.View style={{ flex: 1 }}>
         <Animated.View
           className="px-2"
           style={[
@@ -67,18 +32,17 @@ export default function ParallaxScrollView({
               backgroundColor:
                 headerBackgroundColor && headerBackgroundColor[colorScheme],
             },
-            headerAnimatedStyle,
           ]}
         >
           {headerContent}
         </Animated.View>
-        <View
+        <Animated.View
           style={[{ backgroundColor }, styles.content]}
           className="p-8 pb-32"
         >
           {children}
-        </View>
-      </Animated.ScrollView>
+        </Animated.View>
+      </Animated.View>
     </ThemedView>
   )
 }

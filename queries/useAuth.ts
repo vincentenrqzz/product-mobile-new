@@ -22,7 +22,6 @@ export const useLogin = () => {
     mutationFn: ({ username, password }) => login(username, password),
     onSuccess: (data, variables) => {
       const { IdToken, ExpiresIn } = data.AuthenticationResult
-      console.log('data', data)
       setAuthState(true, IdToken)
       queryClient.invalidateQueries({ queryKey: ['auth'] })
     },
