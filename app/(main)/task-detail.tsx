@@ -1,17 +1,32 @@
 import ParallaxScrollView from '@/components/ParallaxScrollView'
 import BackButton from '@/components/ui/BackButton'
-import { useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams, useRouter } from 'expo-router'
 import React from 'react'
-import { Text, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 
 const TaskDetail = () => {
+  //builtin
+  const router = useRouter()
   const params = useLocalSearchParams()
+  const { task } = params
   console.log('params', params)
   return (
     <ParallaxScrollView>
       <BackButton title="Task Detail" />
       <View>
         <Text>TaskDetail</Text>
+        <TouchableOpacity
+          onPress={() => {
+            router.push({
+              pathname: '/(main)/task-form',
+              params: {
+                task,
+              },
+            })
+          }}
+        >
+          <Text>Go forms</Text>
+        </TouchableOpacity>
       </View>
     </ParallaxScrollView>
   )

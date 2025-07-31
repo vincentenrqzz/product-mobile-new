@@ -142,7 +142,7 @@ interface AuthState {
   taskTypes: TaskTypes | []
   taskDetails: TaskDetails | []
   pendingTasks: any[] | []
-  successTaskIds: any[]
+  successTaskIds: string[]
   tasks: Task[] | []
   setTaskTypes: (data: any) => void
   setTaskList: (data: TaskList) => void
