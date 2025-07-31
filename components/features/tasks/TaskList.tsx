@@ -90,6 +90,7 @@ const TaskList = ({ tasks, dateSeparator, forEscalate }: Props) => {
   }
   return (
     <FlatList
+      showsVerticalScrollIndicator={false}
       data={tasks}
       keyExtractor={(item) => item.taskId.toString()}
       contentContainerStyle={{ flexGrow: 1 }}

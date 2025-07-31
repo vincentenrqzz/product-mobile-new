@@ -1,38 +1,17 @@
 import { DEFAULT_CURRENCY_SYMBOL } from '@/lib/constants'
 import parseValueForRender from '@/lib/parseValueForRenderer'
-import removeUrgentFromDetails from '@/lib/removeUrgentFromDetails'
-import useTaskStore, { Task } from '@/store/tasks'
+import useTaskStore, { Task, TaskDetail } from '@/store/tasks'
 import useUserInfoStore from '@/store/userInfo'
-import { cloneDeep } from 'lodash'
 import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
 interface Props {
   task: Task
+  sortedDetails: TaskDetail[]
 }
-const TaskItemKey = ({ task }: Props) => {
+const TaskItemKey = ({ task, sortedDetails }: Props) => {
   const { userSettings, userGroup } = useUserInfoStore()
   const { taskStatuses } = useTaskStore()
   //memo
-  const sortedDetails = useMemo(() => {
-    const { taskDetails } = task
-
-    if (!taskDetails) return []
-
-    let clone = cloneDeep(taskDetails)
-    clone = removeUrgentFromDetails(clone)
-
-    clone.sort((a: any, b: any) => {
-      if (a.orderMobile === b.orderMobile) return a.label.localeCompare(b.label)
-      if (a.orderMobile == null && b.orderMobile == null) return 0
-
-      if (a.orderMobile == null) return 1
-      if (b.orderMobile == null) return -1
-
-      return a.orderMobile < b.orderMobile ? -1 : 1
-    })
-
-    return clone
-  }, [task])
 
   const taskDetailsDisplayLimit = useMemo(() => {
     const match = userSettings.find(
@@ -88,7 +67,7 @@ const TaskItemKey = ({ task }: Props) => {
         }
 
         return (
-          <View className="flex flex-row justify-between" key={item.key}>
+          <View className="flex flex-row justify-between " key={item.key}>
             <Text style={{}}>{item.label}:</Text>
             <Text style={{}}>{parsedValue}</Text>
           </View>

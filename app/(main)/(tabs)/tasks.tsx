@@ -16,7 +16,6 @@ export default function Tasks() {
   //store
   const { userSettings, userInfo } = useUserInfoStore()
   const { tasks, pendingTasks, successTaskIds } = useTaskStore()
-  console.log('tasks', tasks)
   //state
   const [timeNow, setTimeNow] = useState<string | Date>('')
   const matchLogo = userSettings.find((item) => item.key === 'tenantLogo')
@@ -227,8 +226,6 @@ export default function Tasks() {
         .format('DD/MM/YYYY')
 
       const matchDateString = moment(matchDate).format('DD/MM/YYYY')
-      console.log('itemDateInIsrael', itemDateInIsrael)
-      console.log('matchDateString', matchDateString)
 
       return itemDateInIsrael === matchDateString
     })
@@ -257,7 +254,6 @@ export default function Tasks() {
   }: any) => {
     let result = filterByType(taskToFilter, type)
     result = filterByDate(result, time)
-    console.log('result', result)
     return filterBySearch(result, searchText)
   }
 

@@ -24,18 +24,20 @@ export default function ParallaxView({
   return (
     <ThemedView style={styles.container}>
       <Animated.View style={{ flex: 1 }}>
-        <Animated.View
-          className="px-2"
-          style={[
-            styles.header,
-            {
-              backgroundColor:
-                headerBackgroundColor && headerBackgroundColor[colorScheme],
-            },
-          ]}
-        >
-          {headerContent}
-        </Animated.View>
+        {headerContent && (
+          <Animated.View
+            className="px-2"
+            style={[
+              styles.header,
+              {
+                backgroundColor:
+                  headerBackgroundColor && headerBackgroundColor[colorScheme],
+              },
+            ]}
+          >
+            {headerContent}
+          </Animated.View>
+        )}
         <Animated.View
           style={[{ backgroundColor }, styles.content]}
           className="p-8 pb-32"

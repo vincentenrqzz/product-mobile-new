@@ -1,10 +1,12 @@
 import getCoordinatesFromAddress from '@/lib/getCoordinates'
 import openWazeAppStore from '@/lib/openWazeAppStore'
+import removeUrgentFromDetails from '@/lib/removeUrgentFromDetails'
 import useFormsStore from '@/store/forms'
 import useTaskStore, { Task } from '@/store/tasks'
 import useUserInfoStore from '@/store/userInfo'
 import { MaterialCommunityIcons } from '@expo/vector-icons'
 import { useRouter } from 'expo-router'
+import { cloneDeep } from 'lodash'
 import moment from 'moment-timezone'
 import React, { useMemo, useState } from 'react'
 import { Alert, Linking, Platform, TouchableOpacity, View } from 'react-native'
@@ -20,8 +22,9 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
 
   //store
   const { userSettings, userInfo } = useUserInfoStore()
-  const { taskList } = useTaskStore()
+  const { taskList, taskStatuses } = useTaskStore()
   const { dialerClicks, setDialerClicks } = useFormsStore()
+
   //state
   const [isEqualTask, setIsEqualTask] = useState<number | null>(null)
   const [isUrgent, setIsUrgent] = useState(false)
@@ -79,6 +82,34 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
 
     return ''
   }, [task, taskList?.taskDetailsIcons])
+
+  const statusLabels = useMemo(() => {
+    return taskStatuses.reduce((acc: any, item) => {
+      acc[item.Key] = item.label
+      return acc
+    }, {})
+  }, [taskStatuses])
+
+  const sortedDetails = useMemo(() => {
+    const { taskDetails } = task
+
+    if (!taskDetails) return []
+
+    let clone = cloneDeep(taskDetails)
+    clone = removeUrgentFromDetails(clone)
+
+    clone.sort((a: any, b: any) => {
+      if (a.orderMobile === b.orderMobile) return a.label.localeCompare(b.label)
+      if (a.orderMobile == null && b.orderMobile == null) return 0
+
+      if (a.orderMobile == null) return 1
+      if (b.orderMobile == null) return -1
+
+      return a.orderMobile < b.orderMobile ? -1 : 1
+    })
+
+    return clone
+  }, [task])
 
   //function
   const registerClickDates = async (task: any) => {
@@ -159,31 +190,47 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
     const mapsUrl = `geo:0,0?q=${address}`
     Linking.openURL(mapsUrl).catch(() => {})
   }
-
+  const toListItemDetails = sortedDetails.slice(5, sortedDetails.length)
   return (
     <TouchableOpacity
-      disabled={forEscalate === 'pending' ? true : false}
+      className="my-4"
+      disabled={forEscalate === 'pending'}
       onPress={() => {
-        router.push('/(main)/task-detail')
+        router.push({
+          pathname: '/(main)/task-detail',
+          params: {
+            task,
+            fromListItemTab: toListItemDetails,
+            statusLabels,
+          },
+        })
+        // if (task.statusId === 'pending') {
+        //   // router.push('/(main)/task-detail', {
+        //   //   task,
+        //   //   fromListItemTab: toListItemDetails,
+        //   //   statusLabels,
+        //   // })
+
+        // }
       }}
     >
       <View
         style={[{ backgroundColor: backgroundColor }]}
         className="rounded-md p-4"
       >
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <TaskItemKey task={task} />
-          <View>
+        <View
+          className="flex-row"
+          style={{
+            justifyContent: 'space-between',
+          }}
+        >
+          <View style={{ width: '60%' }}>
+            <TaskItemKey task={task} sortedDetails={sortedDetails} />
+          </View>
+
+          <View className="gap-2">
             {!getTaskCanBeExecuted && isEqualTask === task?.taskId && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1,
-                  minHeight: 12,
-                }}
-              >
+              <View className="jutify-center items-center">
                 <MaterialCommunityIcons
                   name="alert-outline"
                   color="#000"
@@ -192,43 +239,21 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
               </View>
             )}
             {isUrgent && (
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1,
-                  minHeight: 12,
-                }}
-              >
+              <View className="jutify-center items-center">
                 <MaterialCommunityIcons name="flash" size={28} color="red" />
               </View>
             )}
             {contactNumber !== '' && (
               <TouchableOpacity
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1,
-                  minHeight: 12,
-                }}
+                className="jutify-center items-center"
                 onPress={() => openContacts(contactNumber)}
               >
-                <View>
-                  <MaterialCommunityIcons nname="phone" size={28} />
-                </View>
+                <MaterialCommunityIcons name="phone" size={28} />
               </TouchableOpacity>
             )}
             {addressDetails !== '' && (
               <TouchableOpacity
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flex: 1,
-                  minHeight: 12,
-                }}
+                className="jutify-center items-center"
                 onPress={() => openMap(addressDetails)}
               >
                 <View>

@@ -59,19 +59,22 @@ export default function ParallaxScrollView({
         contentContainerStyle={{ paddingBottom: bottom }}
         showsVerticalScrollIndicator={false}
       >
-        <Animated.View
-          className="px-2"
-          style={[
-            styles.header,
-            {
-              backgroundColor:
-                headerBackgroundColor && headerBackgroundColor[colorScheme],
-            },
-            headerAnimatedStyle,
-          ]}
-        >
-          {headerContent}
-        </Animated.View>
+        {headerContent && (
+          <Animated.View
+            className="px-2"
+            style={[
+              styles.header,
+              {
+                backgroundColor:
+                  headerBackgroundColor && headerBackgroundColor[colorScheme],
+              },
+              headerAnimatedStyle,
+            ]}
+          >
+            {headerContent}
+          </Animated.View>
+        )}
+
         <View
           style={[{ backgroundColor }, styles.content]}
           className="p-8 pb-32"

@@ -1,6 +1,6 @@
 import useUserInfoStore from '@/store/userInfo'
 import React, { useEffect, useMemo, useState } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { ScrollView, Text, TouchableOpacity, View } from 'react-native'
 
 interface TabTaskProps {
   statusesTabs: { [key: string]: any[] } // A map of statuses to tasks (the structure is not clear from the code)
@@ -37,33 +37,37 @@ const TabTask: React.FC<TabTaskProps> = ({
   }, [userSettings])
 
   return (
-    <View className="flex-row gap-4">
-      {Object.keys(statusesTabs).map((key) => {
-        const escalateTab = key === 'escalate'
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <View className="flex-row gap-4">
+        {Object.keys(statusesTabs).map((key) => {
+          const escalateTab = key === 'escalate'
 
-        if (escalateTab && !showEscalateTab) {
-          return null
-        }
+          if (escalateTab && !showEscalateTab) {
+            return null
+          }
 
-        const label = labels[key] || key
-        const isActive = activeTab === key
-        const textColor = isActive ? 'text-blue-600' : 'text-gray-900' // Active tab text in blue
+          const label = labels[key] || key
+          const isActive = activeTab === key
+          const textColor = isActive ? 'text-blue-600' : 'text-gray-900' // Active tab text in blue
 
-        return (
-          <TouchableOpacity
-            key={key}
-            onPress={() => setActiveTab(key)}
-            className={`mx-4 items-center justify-center px-5 py-2 ${
-              isActive
-                ? 'border-b-4 border-blue-600'
-                : 'border-b-4 border-transparent'
-            }`}
-          >
-            <Text className={`${textColor} text-lg font-medium`}>{label}</Text>
-          </TouchableOpacity>
-        )
-      })}
-    </View>
+          return (
+            <TouchableOpacity
+              key={key}
+              onPress={() => setActiveTab(key)}
+              className={`mx-4 items-center justify-center px-5 py-2 ${
+                isActive
+                  ? 'border-b-4 border-blue-600'
+                  : 'border-b-4 border-transparent'
+              }`}
+            >
+              <Text className={`${textColor} text-lg font-medium`}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+    </ScrollView>
   )
 }
 

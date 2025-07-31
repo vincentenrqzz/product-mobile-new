@@ -78,7 +78,7 @@ type FormItem = {
   videoDurationLimit: number
 }
 
-type TaskDetail = {
+export type TaskDetail = {
   inputType: string
   key: string
   label: string
@@ -134,7 +134,7 @@ interface Field {
   __v?: number
 }
 
-type TaskDetails = Field[]
+export type TaskDetails = Field[]
 
 interface AuthState {
   taskList: TaskList | null
