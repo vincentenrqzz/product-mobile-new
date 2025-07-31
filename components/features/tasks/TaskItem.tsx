@@ -89,7 +89,6 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
       return acc
     }, {})
   }, [taskStatuses])
-
   const sortedDetails = useMemo(() => {
     const { taskDetails } = task
 
@@ -199,9 +198,9 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
         router.push({
           pathname: '/(main)/task-detail',
           params: {
-            task,
-            fromListItemTab: toListItemDetails,
-            statusLabels,
+            task: JSON.stringify(task),
+            fromListItemTab: JSON.stringify(toListItemDetails),
+            statusLabels: JSON.stringify(statusLabels),
           },
         })
         // if (task.statusId === 'pending') {

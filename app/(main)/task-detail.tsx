@@ -1,5 +1,6 @@
 import ParallaxScrollView from '@/components/ParallaxScrollView'
 import BackButton from '@/components/ui/BackButton'
+import { Task } from '@/types/task'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
@@ -9,10 +10,13 @@ const TaskDetail = () => {
   const router = useRouter()
   const params = useLocalSearchParams()
   const { task, fromListItemTab, statusLabels } = params
-  console.log('params', params)
+
+  //parsing params data
+  const parsedTask: Task = typeof task === 'string' && JSON.parse(task)
+
   return (
     <ParallaxScrollView>
-      <BackButton title="Task Detail" />
+      <BackButton title={`${parsedTask.taskType}`} />
       <View>
         <Text>TaskDetail</Text>
         <TouchableOpacity
