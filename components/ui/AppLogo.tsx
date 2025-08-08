@@ -10,7 +10,7 @@ const AppLogo = () => {
   const imageSource = matchLogo?.value
     ? { uri: matchLogo.value }
     : require('@/assets/images/partial-react-logo.png')
-
+  console.log('imageSource', matchLogo)
   return (
     <Image
       source={imageSource} // Correctly use the source prop

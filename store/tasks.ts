@@ -1,3 +1,4 @@
+import { ParsedFormField } from '@/types/form'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -30,7 +31,7 @@ export type Task = {
   executionEndDate: string
   executionStartDate: string
   favoriteTask: boolean
-  form: FormItem[]
+  form: ParsedFormField[]
   groupName: string
   isArchived: boolean
   lastUpdatedAt: string
@@ -70,12 +71,13 @@ type FormItem = {
   layout: string
   note: string
   placeholder: string
-  rules: any[]
+  rules: any
   taskDetailKey: string | null
   uniqueId: string
   validation: string
   value: string | null
   videoDurationLimit: number
+  conditions: any
 }
 
 export type TaskDetail = {
@@ -85,7 +87,7 @@ export type TaskDetail = {
   order: number | null
   orderMobile: number | null
   showInTable: boolean
-  value: string | null
+  value: any
   format?: string
   fromDefaultProp?: boolean
 }
@@ -134,6 +136,10 @@ interface Field {
   __v?: number
 }
 
+interface PendingTask {
+  taskId: string
+  images: string[]
+}
 export type TaskDetails = Field[]
 
 interface AuthState {
@@ -141,7 +147,7 @@ interface AuthState {
   taskStatuses: TaskStatuses | []
   taskTypes: TaskTypes | []
   taskDetails: TaskDetails | []
-  pendingTasks: any[] | []
+  pendingTasks: PendingTask[] | []
   successTaskIds: string[]
   tasks: Task[] | []
   setTaskTypes: (data: any) => void
@@ -154,6 +160,32 @@ interface AuthState {
   clearAll: () => void // Added clearAll method to reset the store state and clear AsyncStorage
 }
 
+const IMAGE_URI =
+  'file:///data/user/0/com.vincentenrqz.productmobilenew/cache/ImagePicker/409995d5-c44b-40a2-963c-cb2014e39d46.jpeg'
+
+const pendingTasks = [
+  { taskId: '1', images: Array(6).fill(IMAGE_URI) },
+  { taskId: '2', images: Array(10).fill(IMAGE_URI) },
+  { taskId: '3', images: Array(5).fill(IMAGE_URI) },
+  { taskId: '4', images: Array(9).fill(IMAGE_URI) },
+  { taskId: '5', images: Array(7).fill(IMAGE_URI) },
+  { taskId: '6', images: Array(11).fill(IMAGE_URI) },
+  { taskId: '7', images: Array(8).fill(IMAGE_URI) },
+  { taskId: '8', images: Array(13).fill(IMAGE_URI) },
+  { taskId: '9', images: Array(5).fill(IMAGE_URI) },
+  { taskId: '10', images: Array(14).fill(IMAGE_URI) },
+  { taskId: '11', images: Array(30).fill(IMAGE_URI) },
+  { taskId: '12', images: Array(17).fill(IMAGE_URI) },
+  { taskId: '13', images: Array(23).fill(IMAGE_URI) },
+  { taskId: '14', images: Array(19).fill(IMAGE_URI) },
+  { taskId: '15', images: Array(21).fill(IMAGE_URI) },
+  { taskId: '16', images: Array(16).fill(IMAGE_URI) },
+  { taskId: '17', images: Array(25).fill(IMAGE_URI) },
+  { taskId: '18', images: Array(18).fill(IMAGE_URI) },
+  { taskId: '19', images: Array(12).fill(IMAGE_URI) },
+  { taskId: '20', images: Array(29).fill(IMAGE_URI) },
+]
+
 // Create the Zustand store
 const useTaskStore = create<AuthState>()(
   persist(
@@ -162,7 +194,7 @@ const useTaskStore = create<AuthState>()(
       taskList: null,
       taskTypes: [],
       taskDetails: [],
-      pendingTasks: [],
+      pendingTasks: pendingTasks,
       tasks: [],
       successTaskIds: [],
       setTaskTypes: (data) => {
@@ -226,6 +258,11 @@ const useTaskStore = create<AuthState>()(
     {
       name: 'tasks', // The name of the persisted storage
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.pendingTasks || state.pendingTasks.length === 0) {
+          state?.setPendingTasks(pendingTasks) // ← inject your static data
+        }
+      },
     },
   ),
 )

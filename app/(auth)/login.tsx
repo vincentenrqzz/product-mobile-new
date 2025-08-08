@@ -18,7 +18,7 @@ export default function login() {
   const { colors, isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
-
+  // const { pendingTasks } = useTaskStore()
   useEffect(() => {
     const loadEnvState = async () => {
       try {
@@ -73,7 +73,6 @@ export default function login() {
   const dismissKeyboard = () => {
     Keyboard.dismiss()
   }
-
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
       <View
@@ -97,6 +96,21 @@ export default function login() {
             >
               Finito
             </Text>
+            {/* {pendingTasks.map((pending) => {
+              return pending.images.map((image: string, index: any) => (
+                <Image
+                  key={index}
+                  source={{ uri: image }}
+                  style={{
+                    marginTop: 20,
+                    alignSelf: 'center',
+                    width: 300,
+                    height: 200,
+                    borderRadius: 10,
+                  }}
+                />
+              ))
+            })} */}
             <Text
               className="mt-2 text-center font-montserrat-regular"
               style={{ color: colors.text, opacity: 0.8 }}

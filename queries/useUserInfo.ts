@@ -11,6 +11,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 export const useGetUser = () => {
   const queryClient = useQueryClient()
   const { token } = useAuthStore.getState()
+  const { userInfo } = useUserInfoStore()
   return useQuery<any, Error>({
     queryKey: ['user', token],
     queryFn: () => getUser(),

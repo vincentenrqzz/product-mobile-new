@@ -199,8 +199,10 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
           pathname: '/(main)/task-detail',
           params: {
             task: JSON.stringify(task),
-            fromListItemTab: JSON.stringify(toListItemDetails),
+            // fromListItemTab: JSON.stringify(toListItemDetails),
             statusLabels: JSON.stringify(statusLabels),
+            forEscalate,
+            getTaskCanBeExecuted,
           },
         })
         // if (task.statusId === 'pending') {
@@ -215,7 +217,7 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
     >
       <View
         style={[{ backgroundColor: backgroundColor }]}
-        className="rounded-md p-4"
+        className=" rounded-md p-4"
       >
         <View
           className="flex-row"
@@ -223,7 +225,7 @@ const TaskItem = ({ task, forEscalate, backgroundColor }: Props) => {
             justifyContent: 'space-between',
           }}
         >
-          <View style={{ width: '60%' }}>
+          <View className="gap-4" style={{ width: '60%' }}>
             <TaskItemKey task={task} sortedDetails={sortedDetails} />
           </View>
 

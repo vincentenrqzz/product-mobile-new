@@ -22,7 +22,7 @@ const BASE_URLS = {
 }
 
 export const API = {
-  BASE_URL: BASE_URLS.qa,
+  BASE_URL: BASE_URLS.dev,
   ENDPOINTS: {
     USER: {
       POST: 'auth/login',
@@ -57,6 +57,9 @@ export const API = {
     },
     FILES: {
       POST: 'files/mobile-upload-image',
+    },
+    AMAZON: {
+      POST: 'files/pre-signed-download',
     },
     GROUPS: {
       GET_USER_GROUPS: 'groups/group-with-attributes/:id',

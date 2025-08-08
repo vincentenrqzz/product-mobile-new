@@ -38,7 +38,7 @@ const TabTask: React.FC<TabTaskProps> = ({
 
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-      <View className="flex-row gap-4">
+      <View className="flex-row ">
         {Object.keys(statusesTabs).map((key) => {
           const escalateTab = key === 'escalate'
 

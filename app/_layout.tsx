@@ -1,4 +1,7 @@
+// app/_layout.tsx
+
 import { useColorScheme } from '@/hooks/useColorScheme'
+import { initTaskQueueSystem } from '@/services/queues'
 import useAuthStore from '@/store/auth'
 import {
   Montserrat_400Regular,
@@ -13,13 +16,14 @@ import {
 } from '@react-navigation/native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useFonts } from 'expo-font'
+import * as Notifications from 'expo-notifications'
 import { Stack } from 'expo-router'
 import * as SplashScreen from 'expo-splash-screen'
 import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
-import 'react-native-reanimated'
 import '../global.css'
 
+// Keep splash screen until fonts load
 SplashScreen.preventAutoHideAsync()
 
 const queryClient = new QueryClient({
@@ -31,20 +35,41 @@ const queryClient = new QueryClient({
   },
 })
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true,
+    shouldShowList: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+})
+
 export default function RootLayout() {
   const colorScheme = useColorScheme()
   const { isLoggedIn } = useAuthStore()
+
   const [fontsLoaded, fontError] = useFonts({
     'Montserrat-Regular': Montserrat_400Regular,
     'Montserrat-Medium': Montserrat_500Medium,
     'Montserrat-SemiBold': Montserrat_600SemiBold,
     'Montserrat-Bold': Montserrat_700Bold,
   })
+
+  useEffect(() => {
+    // Ask permission for notifications
+    Notifications.requestPermissionsAsync()
+    // The rest of your logic (register tasks, start interval, etc.)
+  }, [])
+
+  // ✅ Handle splash screen
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync()
     }
   }, [fontsLoaded, fontError])
+  useEffect(() => {
+    initTaskQueueSystem()
+  }, [])
 
   if (!fontsLoaded && !fontError) {
     return null
@@ -53,7 +78,6 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        {/* <AuthProvider> remove used another simpler way to auth user */}
         <Stack
           screenOptions={{
             headerShown: false,
@@ -69,7 +93,6 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
-        {/* </AuthProvider> */}
       </ThemeProvider>
     </QueryClientProvider>
   )

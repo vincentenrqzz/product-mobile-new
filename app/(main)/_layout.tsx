@@ -8,28 +8,29 @@ import useAuthStore from '@/store/auth'
 import useFormsStore from '@/store/forms'
 import useTaskStore from '@/store/tasks'
 import useUserInfoStore from '@/store/userInfo'
+
 import { useQueries } from '@tanstack/react-query'
 import { Redirect, Stack } from 'expo-router'
 import { useEffect } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 
 export default function AppLayout() {
-  const { isLoggedIn, token, setAuthState, logout } = useAuthStore()
-  const { setUserInfo, setUserGroup, setUserSettings } = useUserInfoStore()
+  const { isLoggedIn } = useAuthStore()
+  const { setUserInfo, setUserGroup, setUserSettings, userInfo } =
+    useUserInfoStore()
   const { setTaskTypes, setTaskList, setTaskStatuses, setTaskDetails } =
     useTaskStore()
   const { setForms } = useFormsStore()
 
-  // Fetch data using the custom hooks for different API calls
+  // Fetch current user info (basic profile)
   const {
     data: user,
     isLoading: userIsLoading,
     isError: userIsError,
   } = useGetUser()
 
-  if (!isLoggedIn) {
-    return <Redirect href="/(auth)/login" />
-  }
+  // Only run queries if userInfo is not already loaded
+  //!userInfo &&
   const queryResults = useQueries({
     queries: [
       {
@@ -65,9 +66,7 @@ export default function AppLayout() {
     ],
   })
 
-  // Extracting the result data, loading, and error states
   const [
-    // { data: user, isLoading: userIsLoading, isError: userIsError },
     {
       data: userSettings,
       isLoading: userSettingsIsLoading,
@@ -92,12 +91,12 @@ export default function AppLayout() {
     { data: forms, isLoading: formsIsLoading, isError: formsIsError },
   ] = queryResults
 
-  // Handle setting the data in global state after successful fetch
+  // Set global state when all data is loaded (once)
   useEffect(() => {
-    // Centralized data handling for all queries
+    // if (userInfo) return // Prevent overwriting existing state
+    // console.log('userSettings', userSettings)
     const dataMap = [
       { data: user, setData: setUserInfo },
-      // { data: userGroup, setData: setUserGroup },
       { data: userSettings || [], setData: setUserSettings },
       { data: taskTypes || [], setData: setTaskTypes },
       { data: taskList || null, setData: setTaskList },
@@ -107,13 +106,11 @@ export default function AppLayout() {
     ]
 
     dataMap.forEach(({ data, setData }) => {
-      if (data) {
-        setData(data)
-      }
+      if (data) setData(data)
     })
   }, [
+    userInfo,
     user,
-    // userGroup,
     userSettings,
     taskTypes,
     taskList,
@@ -121,7 +118,6 @@ export default function AppLayout() {
     taskDetails,
     forms,
     setUserInfo,
-    setUserGroup,
     setUserSettings,
     setTaskTypes,
     setTaskList,
@@ -130,10 +126,14 @@ export default function AppLayout() {
     setForms,
   ])
 
-  // Show loading spinner if any of the queries are still loading
+  // Redirect to login if not logged in
+  if (!isLoggedIn) {
+    return <Redirect href="/(auth)/login" />
+  }
+
+  // Loading state
   const isLoading = [
     userIsLoading,
-    // userGroupIsLoading,
     userSettingsIsLoading,
     taskTypesIsLoading,
     taskListIsLoading,
@@ -144,16 +144,15 @@ export default function AppLayout() {
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 items-center justify-center">
         <ActivityIndicator />
       </View>
     )
   }
 
-  // Show an error message if any query failed
+  // Error state
   const isError = [
     userIsError,
-    // userGroupIsError,
     userSettingsIsError,
     taskTypesIsError,
     taskListIsError,
@@ -162,19 +161,20 @@ export default function AppLayout() {
     formsIsError,
   ].some((error) => error)
 
-  if (isError) {
+  if (isError && !userInfo) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View className="flex-1 items-center justify-center">
         <Text>Something went wrong. Please try again.</Text>
       </View>
     )
   }
 
-  // Once all data is loaded, render the layout
+  // Render layout once data is ready
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="task-detail" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="task-detail" />
+      <Stack.Screen name="task-info" />
     </Stack>
   )
 }

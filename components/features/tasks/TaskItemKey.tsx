@@ -40,7 +40,7 @@ const TaskItemKey = ({ task, sortedDetails }: Props) => {
       ?.Description ?? task.groupName
 
   return (
-    <View>
+    <View className="gap-2">
       {taskDetailsDisplayLimit.map((item: any) => {
         const isGroup = item.key === 'groupName'
         let value = item.value
@@ -67,9 +67,9 @@ const TaskItemKey = ({ task, sortedDetails }: Props) => {
         }
 
         return (
-          <View className="flex flex-row justify-between " key={item.key}>
+          <View className="flex-row  gap-8" key={item.key}>
             <Text style={{}}>{item.label}:</Text>
-            <Text style={{}}>{parsedValue}</Text>
+            <Text numberOfLines={2}>{parsedValue}</Text>
           </View>
         )
       })}
