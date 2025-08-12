@@ -1,6 +1,6 @@
 import * as Haptics from 'expo-haptics'
 import { Tabs } from 'expo-router'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Pressable, useWindowDimensions, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { useColorScheme } from '@/hooks/useColorScheme'
+import { initTaskQueueSystem } from '@/services/queues'
 import { Ionicons } from '@expo/vector-icons'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { BlurView } from 'expo-blur'
@@ -237,6 +238,10 @@ const TabItem: React.FC<TabItemProps> = ({
 
 // Main Tab Layout Component
 export default function TabLayout() {
+  useEffect(() => {
+    initTaskQueueSystem()
+  }, [])
+
   return (
     <Tabs
       tabBar={(props) => <SimpleAnimatedTabBar {...props} />}

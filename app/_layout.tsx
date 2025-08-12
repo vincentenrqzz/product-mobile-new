@@ -1,7 +1,6 @@
 // app/_layout.tsx
 
 import { useColorScheme } from '@/hooks/useColorScheme'
-import { initTaskQueueSystem } from '@/services/queues'
 import useAuthStore from '@/store/auth'
 import {
   Montserrat_400Regular,
@@ -67,9 +66,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync()
     }
   }, [fontsLoaded, fontError])
-  useEffect(() => {
-    initTaskQueueSystem()
-  }, [])
 
   if (!fontsLoaded && !fontError) {
     return null

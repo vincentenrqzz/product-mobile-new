@@ -136,7 +136,7 @@ interface Field {
   __v?: number
 }
 
-interface PendingTask {
+export interface PendingTask {
   taskId: string
   images: string[]
 }
@@ -162,9 +162,10 @@ interface AuthState {
 
 const IMAGE_URI =
   'file:///data/user/0/com.vincentenrqz.productmobilenew/cache/ImagePicker/409995d5-c44b-40a2-963c-cb2014e39d46.jpeg'
+export const INVALID_IMAGE_URI = 'file:///invalid/path/to/image.jpeg'
 
 const pendingTasks = [
-  { taskId: '1', images: Array(6).fill(IMAGE_URI) },
+  { taskId: '1', images: [INVALID_IMAGE_URI, ...Array(6).fill(IMAGE_URI)] },
   { taskId: '2', images: Array(10).fill(IMAGE_URI) },
   { taskId: '3', images: Array(5).fill(IMAGE_URI) },
   { taskId: '4', images: Array(9).fill(IMAGE_URI) },
@@ -259,7 +260,7 @@ const useTaskStore = create<AuthState>()(
       name: 'tasks', // The name of the persisted storage
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => (state) => {
-        if (!state?.pendingTasks || state.pendingTasks.length === 0) {
+        if (state?.pendingTasks) {
           state?.setPendingTasks(pendingTasks) // ← inject your static data
         }
       },

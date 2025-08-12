@@ -8,7 +8,8 @@ export const initTaskQueueSystem = async () => {
 
   /// network watchers
   /// TBA queues mo stop if walay data ang pendingTask pero mo start mani siya automatic if naay pendingTask
-  ///
+  // mo listen ni siya sa internet if \
+  // if walay internet kay automatic mo stop siya sa queues
   await networkWatchers(async (state) => {
     try {
       if (state.isConnected && state.isInternetReachable) {
