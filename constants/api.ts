@@ -1,4 +1,5 @@
-const BASE_URLS = {
+// src/constants/urls.ts
+export const BASE_URLS = {
   local: {
     MAIN: 'http://192.168.1.3:5000/',
     FILE: 'http://192.168.1.3:8080/',
@@ -19,10 +20,12 @@ const BASE_URLS = {
     FILE: 'https://product-saas-files-gw-qa.milgam.co.il:8015/',
     SOCKET: 'https://miltask-gw.milgam.co.il/',
   },
-}
+} as const
+export type EnvKey = keyof typeof BASE_URLS
+export type BaseGroup = (typeof BASE_URLS)[EnvKey]
 
 export const API = {
-  BASE_URL: BASE_URLS.qa,
+  BASE_URL: BASE_URLS.dev,
   ENDPOINTS: {
     USER: {
       POST: 'auth/login',

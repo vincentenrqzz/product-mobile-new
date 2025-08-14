@@ -1,9 +1,11 @@
 import LoginForm from '@/components/features/login/LoginForm'
+import { BASE_URLS } from '@/constants/api'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { useLogin } from '@/queries/useAuth'
+import useAuthStore from '@/store/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import {
   Keyboard,
   Pressable,
@@ -14,7 +16,7 @@ import {
 import Animated, { FadeIn, FadeOut, SlideInDown } from 'react-native-reanimated'
 
 export default function login() {
-  const [envState, setEnvState] = useState('DEV')
+  const { setEnvState, SetBaseUrl, envState } = useAuthStore()
   const { colors, isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
@@ -34,9 +36,21 @@ export default function login() {
     loadEnvState()
   }, [])
 
-  const handleEnvSelection = async (env: string) => {
+  const handleEnvSelection = async (env: 'DEV' | 'STAGING' | 'QA' | 'PROD') => {
     try {
       setEnvState(env)
+      if (env === 'DEV') {
+        SetBaseUrl(BASE_URLS.dev)
+      }
+      if (env === 'STAGING') {
+        SetBaseUrl(BASE_URLS.dev)
+      }
+      if (env === 'QA') {
+        SetBaseUrl(BASE_URLS.qa)
+      }
+      if (env === 'PROD') {
+        SetBaseUrl(BASE_URLS.prod)
+      }
       await AsyncStorage.setItem('envState', env)
     } catch (error) {
       console.log('Error saving envState to AsyncStorage', error)

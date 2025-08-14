@@ -1,7 +1,12 @@
+import { pendingImages, pendingTasks } from '@/lib/constants'
 import { ParsedFormField } from '@/types/form'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
-import { createJSONStorage, persist } from 'zustand/middleware'
+import {
+  createJSONStorage,
+  persist,
+  subscribeWithSelector,
+} from 'zustand/middleware'
 
 interface Form {
   execute: string
@@ -136,18 +141,21 @@ interface Field {
   __v?: number
 }
 
-export interface PendingTask {
-  taskId: string
-  images: string[]
-}
 export type TaskDetails = Field[]
+
+export type PendingImage = {
+  taskId: number
+  name: string
+  filePath: string
+}
 
 interface AuthState {
   taskList: TaskList | null
   taskStatuses: TaskStatuses | []
   taskTypes: TaskTypes | []
   taskDetails: TaskDetails | []
-  pendingTasks: PendingTask[] | []
+  pendingTasks: any[] | []
+  pendingImages: PendingImage[] | []
   successTaskIds: string[]
   tasks: Task[] | []
   setTaskTypes: (data: any) => void
@@ -155,8 +163,12 @@ interface AuthState {
   setTaskStatuses: (data: TaskStatuses) => void
   setTaskDetails: (data: TaskDetails) => void
   setPendingTasks: (data: any[]) => void
+  setPendingImages: (data: any[]) => void
   setTasks: (data: any[]) => void
   setSuccessTaskIds: (data: any[]) => void
+  // ✅ add helpers
+  addPendingTask: (task: any) => void
+  popNextTask: () => any | undefined
   clearAll: () => void // Added clearAll method to reset the store state and clear AsyncStorage
 }
 
@@ -164,107 +176,105 @@ const IMAGE_URI =
   'file:///data/user/0/com.vincentenrqz.productmobilenew/cache/ImagePicker/409995d5-c44b-40a2-963c-cb2014e39d46.jpeg'
 export const INVALID_IMAGE_URI = 'file:///invalid/path/to/image.jpeg'
 
-const pendingTasks = [
-  { taskId: '1', images: [INVALID_IMAGE_URI, ...Array(6).fill(IMAGE_URI)] },
-  { taskId: '2', images: Array(10).fill(IMAGE_URI) },
-  { taskId: '3', images: Array(5).fill(IMAGE_URI) },
-  { taskId: '4', images: Array(9).fill(IMAGE_URI) },
-  { taskId: '5', images: Array(7).fill(IMAGE_URI) },
-  { taskId: '6', images: Array(11).fill(IMAGE_URI) },
-  { taskId: '7', images: Array(8).fill(IMAGE_URI) },
-  { taskId: '8', images: Array(13).fill(IMAGE_URI) },
-  { taskId: '9', images: Array(5).fill(IMAGE_URI) },
-  { taskId: '10', images: Array(14).fill(IMAGE_URI) },
-  { taskId: '11', images: Array(30).fill(IMAGE_URI) },
-  { taskId: '12', images: Array(17).fill(IMAGE_URI) },
-  { taskId: '13', images: Array(23).fill(IMAGE_URI) },
-  { taskId: '14', images: Array(19).fill(IMAGE_URI) },
-  { taskId: '15', images: Array(21).fill(IMAGE_URI) },
-  { taskId: '16', images: Array(16).fill(IMAGE_URI) },
-  { taskId: '17', images: Array(25).fill(IMAGE_URI) },
-  { taskId: '18', images: Array(18).fill(IMAGE_URI) },
-  { taskId: '19', images: Array(12).fill(IMAGE_URI) },
-  { taskId: '20', images: Array(29).fill(IMAGE_URI) },
-]
-
 // Create the Zustand store
 const useTaskStore = create<AuthState>()(
-  persist(
-    (set, get) => ({
-      taskStatuses: [],
-      taskList: null,
-      taskTypes: [],
-      taskDetails: [],
-      pendingTasks: pendingTasks,
-      tasks: [],
-      successTaskIds: [],
-      setTaskTypes: (data) => {
-        set({ taskTypes: data })
-      },
-      setTaskList: (data) => {
-        if (!data) {
-          return
-        }
-        const { taskTypes } = get() // Access taskTypes from the store's state
-
-        set({ taskList: data })
-
-        data.tasks = data.tasks.map((item) => {
-          const getTaskType = taskTypes.find(
-            (task: { key: any }) => task.key === item.taskType,
-          )
-
-          const getTaskDetailsIndex = item.taskDetails.findIndex(
-            (details: { key: string }) => details.key === 'taskType',
-          )
-
-          if (getTaskType && getTaskDetailsIndex !== -1) {
-            item.taskType = getTaskType?.label
-            item.taskDetails[getTaskDetailsIndex].value = getTaskType?.label
+  subscribeWithSelector(
+    persist(
+      (set, get) => ({
+        taskStatuses: [],
+        taskList: null,
+        taskTypes: [],
+        taskDetails: [],
+        pendingTasks: pendingTasks,
+        pendingImages: pendingImages,
+        tasks: [],
+        successTaskIds: [],
+        setTaskTypes: (data) => {
+          set({ taskTypes: data })
+        },
+        setTaskList: (data) => {
+          if (!data) {
+            return
           }
+          const { taskTypes } = get() // Access taskTypes from the store's state
 
-          return item
-        })
+          set({ taskList: data })
 
-        set({ tasks: data.tasks })
-      },
-      setPendingTasks: (data) => {
-        set({ pendingTasks: data })
-      },
-      setSuccessTaskIds: (data) => {
-        set({ successTaskIds: data })
-      },
-      setTasks: (data) => {
-        set({ tasks: data })
-      },
+          data.tasks = data.tasks.map((item) => {
+            const getTaskType = taskTypes.find(
+              (task: { key: any }) => task.key === item.taskType,
+            )
 
-      setTaskStatuses: (data) => {
-        set({ taskStatuses: data })
-      },
-      setTaskDetails: (data) => {
-        set({ taskDetails: data })
-      },
-      clearAll: async () => {
-        await AsyncStorage.clear() // Clear all data from AsyncStorage
-        // Reset all relevant store state fields to their initial values
-        set({
-          taskList: null,
-          taskStatuses: [],
-          taskTypes: [],
-          taskDetails: [],
-        })
-      },
-    }),
+            const getTaskDetailsIndex = item.taskDetails.findIndex(
+              (details: { key: string }) => details.key === 'taskType',
+            )
 
-    {
-      name: 'tasks', // The name of the persisted storage
-      storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => {
-        if (state?.pendingTasks) {
-          state?.setPendingTasks(pendingTasks) // ← inject your static data
-        }
+            if (getTaskType && getTaskDetailsIndex !== -1) {
+              item.taskType = getTaskType?.label
+              item.taskDetails[getTaskDetailsIndex].value = getTaskType?.label
+            }
+
+            return item
+          })
+
+          set({ tasks: data.tasks })
+        },
+        setPendingTasks: (data) => {
+          set({ pendingTasks: data })
+        },
+        setPendingImages: (data) => {
+          set({ pendingImages: data })
+        },
+        setSuccessTaskIds: (data) => {
+          set({ successTaskIds: data })
+        },
+        setTasks: (data) => {
+          set({ tasks: data })
+        },
+
+        setTaskStatuses: (data) => {
+          set({ taskStatuses: data })
+        },
+        setTaskDetails: (data) => {
+          set({ taskDetails: data })
+        },
+        // ✅ NEW: push one task
+        addPendingTask: (task) =>
+          set((s) => ({ pendingTasks: [...s.pendingTasks, task] })),
+
+        // ✅ NEW: FIFO pop one task
+        popNextTask: () => {
+          const list = get().pendingTasks
+          if (!list || list.length === 0) return undefined
+          const [next, ...rest] = list
+          set({ pendingTasks: rest })
+          return next
+        },
+        clearAll: async () => {
+          await AsyncStorage.clear() // Clear all data from AsyncStorage
+          // Reset all relevant store state fields to their initial values
+          set({
+            taskList: null,
+            taskStatuses: [],
+            taskTypes: [],
+            taskDetails: [],
+          })
+        },
+      }),
+
+      {
+        name: 'tasks', // The name of the persisted storage
+        storage: createJSONStorage(() => AsyncStorage),
+        onRehydrateStorage: () => (state) => {
+          if (state?.pendingTasks) {
+            state?.setPendingTasks(pendingTasks) // ← inject your static data
+          }
+          if (state?.pendingImages) {
+            state?.setPendingImages(pendingImages) // ← inject your static data
+          }
+        },
       },
-    },
+    ),
   ),
 )
 

@@ -36,10 +36,10 @@ const queryClient = new QueryClient({
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
-    shouldShowBanner: true,
-    shouldShowList: true,
     shouldPlaySound: false,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 })
 
@@ -59,6 +59,10 @@ export default function RootLayout() {
     Notifications.requestPermissionsAsync()
     // The rest of your logic (register tasks, start interval, etc.)
   }, [])
+
+  // useEffect(() => {
+  //   initTaskQueueSystem()
+  // }, [])
 
   // ✅ Handle splash screen
   useEffect(() => {

@@ -1,7 +1,8 @@
+import useTaskStore from '@/store/tasks'
 import * as Network from 'expo-network'
 import { initBackgroundQueue } from './background'
 import { networkWatchers } from './networkWatcher'
-import { startQueueLoop } from './startQueueLoop'
+import { startQueueLoop, stopQueueLoop } from './startQueueLoop'
 
 export const initTaskQueueSystem = async () => {
   console.log('[Queue Init] Initializing task queue system...')
@@ -16,13 +17,23 @@ export const initTaskQueueSystem = async () => {
         console.log('[Network Restored] Starting queue loop...')
         startQueueLoop()
       } else {
+        stopQueueLoop()
         console.log('[Network Lost] Waiting to retry...')
       }
     } catch (error) {
-      console.log('ERRPR', error)
+      console.log('networkWatchers error', error)
     }
   })
 
+  // Task watcher → start when 0 → >0
+  useTaskStore.subscribe(
+    (s) => s.pendingTasks.length,
+    (len, prevLen) => {
+      if (prevLen === 0 && len > 0) {
+        startQueueLoop()
+      }
+    },
+  )
   /// initialize networks
   try {
     const state = await Network.getNetworkStateAsync()

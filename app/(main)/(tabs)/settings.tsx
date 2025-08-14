@@ -5,11 +5,14 @@ import ParallaxScrollView from '@/components/ParallaxScrollView'
 import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import AppLogo from '@/components/ui/AppLogo'
+import { pendingImages, pendingTasks } from '@/lib/constants'
+import { stopQueueLoop } from '@/services/queues/startQueueLoop'
 import useAuthStore from '@/store/auth'
+import useTaskStore from '@/store/tasks'
 
 export default function Settings() {
   const { logout } = useAuthStore()
-
+  const { setPendingImages, setPendingTasks } = useTaskStore()
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
@@ -19,13 +22,35 @@ export default function Settings() {
         <ThemedText type="title">Settings</ThemedText>
         <HelloWave />
       </ThemedView>
-      <TouchableOpacity style={[styles.button]} onPress={() => logout()}>
+      <TouchableOpacity
+        style={[styles.button]}
+        onPress={async () => {
+          stopQueueLoop() // ← instantly cancels any pending delay
+          useAuthStore.getState().logout()
+          console.log('Logging out')
+        }}
+      >
         {/* {isLoading ? (
           <ActivityIndicator color="white" />
         ) : (
           <Text style={styles.buttonText}>Logout</Text>
         )} */}
         <Text style={styles.buttonText}>Logout</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button]}
+        onPress={async () => {
+          setPendingImages(pendingImages)
+          setPendingTasks(pendingTasks)
+        }}
+      >
+        {/* {isLoading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Logout</Text>
+        )} */}
+        <Text style={styles.buttonText}>Submit Task</Text>
       </TouchableOpacity>
     </ParallaxScrollView>
   )

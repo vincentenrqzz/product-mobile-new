@@ -15,13 +15,12 @@ import { useEffect } from 'react'
 import { ActivityIndicator, Text, View } from 'react-native'
 
 export default function AppLayout() {
-  const { isLoggedIn } = useAuthStore()
+  const { isLoggedIn, logout } = useAuthStore()
   const { setUserInfo, setUserGroup, setUserSettings, userInfo } =
     useUserInfoStore()
   const { setTaskTypes, setTaskList, setTaskStatuses, setTaskDetails } =
     useTaskStore()
   const { setForms } = useFormsStore()
-
   // Fetch current user info (basic profile)
   const {
     data: user,

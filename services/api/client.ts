@@ -1,11 +1,9 @@
 // src/api/client.ts
-import { API } from '@/constants/api'
 import useAuthStore from '@/store/auth'
 import useUserInfoStore from '@/store/userInfo'
 import axios, { AxiosInstance } from 'axios'
 
 export const client: AxiosInstance = axios.create({
-  baseURL: API.BASE_URL.MAIN,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,6 +12,8 @@ export const client: AxiosInstance = axios.create({
 // ✅ Add request interceptor
 client.interceptors.request.use(
   async (config) => {
+    config.baseURL = useAuthStore.getState().baseUrl.MAIN
+
     const { token } = useAuthStore.getState()
     const { userInfo } = useUserInfoStore.getState()
     if (token) {
@@ -23,11 +23,9 @@ client.interceptors.request.use(
       config.headers['x-tenant-name'] = userInfo.tenant
     }
     // console.log('config.headers', config.headers)
-    // console.log('config.url', config.baseURL, config.url)
+    console.log('config.url', config.baseURL, config.url)
 
     return config
   },
-  (error) => {
-    return Promise.reject(error)
-  },
+  (error) => {},
 )

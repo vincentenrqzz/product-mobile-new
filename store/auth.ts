@@ -1,3 +1,4 @@
+import { BASE_URLS } from '@/constants/api'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -10,6 +11,10 @@ interface AuthState {
   token: string
   setAuthState: (isLoggedIn: boolean, token: string) => void
   logout: () => void // Add logout function to reset state and clear AsyncStorage
+  baseUrl: any
+  SetBaseUrl: (data: any) => void // Add logout function to reset state and clear AsyncStorage
+  envState: string
+  setEnvState: (data: string) => void
 }
 
 // Create the Zustand store
@@ -18,6 +23,14 @@ const useAuthStore = create<AuthState>()(
     (set) => ({
       token: '',
       isLoggedIn: false,
+      baseUrl: BASE_URLS.dev,
+      envState: 'DEV',
+      setEnvState: (data) => {
+        set({ envState: data })
+      },
+      SetBaseUrl: (data) => {
+        set({ baseUrl: data })
+      },
       setAuthState: (isLoggedIn, token) => {
         set({ isLoggedIn, token })
       },

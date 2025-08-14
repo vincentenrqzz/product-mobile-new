@@ -42,7 +42,6 @@ export const getOneTask = async (taskId: string, token: string) => {
 
 export const changeTaskStatus = async (
   taskId: number,
-  token: string,
   wholeTask: Task,
   taskTypes: any[] = [], //TODO Add types for taskTypes
   signal?: AbortSignal,
@@ -53,6 +52,7 @@ export const changeTaskStatus = async (
   const typeKey = typeLabelToKey[wholeTask.taskType] ?? wholeTask.taskType
 
   const endpoint = API.ENDPOINTS.TASKS.UPDATE.replace(':id', taskId.toString())
+
   const response = await client.put(
     endpoint,
     {
@@ -61,13 +61,13 @@ export const changeTaskStatus = async (
     },
     {
       headers: {
-        Authorization: `Bearer ${token}`,
         'x-request-context': 'mobile',
       },
       signal,
     },
   )
 
+  console.log('response', response.data)
   // Check if response.data is a string and looks like HTML
   if (
     typeof response.data === 'string' &&
@@ -76,7 +76,7 @@ export const changeTaskStatus = async (
     return null
   }
 
-  return response.data
+  return response
 }
 
 export const getTaskStatus = async (
