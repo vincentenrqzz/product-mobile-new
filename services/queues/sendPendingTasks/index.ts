@@ -2,6 +2,7 @@ import { calculateBatchSize } from '@/lib/calculateBatchSize'
 import { changeTaskStatus } from '@/services/api/endpoints/tasks'
 import { NotificationService } from '@/services/notification'
 import useTaskStore from '@/store/tasks'
+import useUploadStore from '@/store/upload'
 import { getConnectionState } from '../networkWatcher'
 
 export default async () => {
@@ -55,18 +56,36 @@ export default async () => {
         )
         const send = changeTaskStatus(task._id, task, taskTypes, signal)
 
-        const cancelRef = false
         const checker = new Promise<never>((_, reject) => {
-          const intervalId = setInterval(() => {
-            if (cancelRef) {
-              clearInterval(intervalId)
-              controller.abort()
+          let settled = false
 
-              reject(new Error('Task update cancelled or connection lost'))
+          const onAbort = () => {
+            if (!settled) {
+              settled = true
+              unsubscribe()
+              signal.removeEventListener('abort', onAbort)
+              reject(new Error('Upload cancelled or connection lost'))
             }
-          }, 100)
-        })
+          }
 
+          // If something else aborts, reject this promise too
+          signal.addEventListener('abort', onAbort, { once: true })
+
+          // Subscribe to cancelAllUpload changes
+          const unsubscribe = useUploadStore.subscribe(
+            (s) => s.cancelAllUpload, // selector
+            (cancel) => {
+              if (cancel && !settled) {
+                settled = true
+                unsubscribe()
+                signal.removeEventListener('abort', onAbort)
+                controller.abort()
+                reject(new Error('Upload cancelled or connection lost'))
+              }
+            },
+            { fireImmediately: true }, // run once with current value
+          )
+        })
         const response: any = await Promise.race([timeout, send, checker])
         console.log('updating task', response?.data)
         if (response?.data) {
@@ -100,8 +119,6 @@ export default async () => {
   const remainingPendingTasks = pendingTasks.filter(
     (item) => !successTaskIds.includes(item.task.taskId),
   )
-  console.log('remainingPendingTasks', remainingPendingTasks)
-  console.log('successTaskIds', successTaskIds)
 
   setPendingTasks(remainingPendingTasks)
   return successTaskIds

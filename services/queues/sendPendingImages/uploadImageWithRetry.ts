@@ -1,4 +1,5 @@
 import { PendingImage } from '@/store/tasks'
+import useUploadStore from '@/store/upload'
 import mime from 'mime'
 import { uploadFile } from '../../api/endpoints/upload'
 
@@ -24,21 +25,35 @@ export const uploadImageWithRetry = async (
     const controller = new AbortController()
     const { signal } = controller
 
-    const cancel = false
-    // Create a promise that resolves when cancelled
     const cancelPromise = new Promise<never>((_, reject) => {
-      const checkCancel = () => {
-        if (cancel) {
-          controller.abort()
+      let settled = false
+
+      const onAbort = () => {
+        if (!settled) {
+          settled = true
+          unsubscribe()
+          signal.removeEventListener('abort', onAbort)
           reject(new Error('Upload cancelled or connection lost'))
         }
       }
 
-      checkCancel()
+      // If something else aborts, reject this promise too
+      signal.addEventListener('abort', onAbort, { once: true })
 
-      const intervalId = setInterval(checkCancel, 500)
-
-      signal.addEventListener('abort', () => clearInterval(intervalId))
+      // Subscribe to cancelAllUpload changes
+      const unsubscribe = useUploadStore.subscribe(
+        (s) => s.cancelAllUpload, // selector
+        (cancel) => {
+          if (cancel && !settled) {
+            settled = true
+            unsubscribe()
+            signal.removeEventListener('abort', onAbort)
+            controller.abort()
+            reject(new Error('Upload cancelled or connection lost'))
+          }
+        },
+        { fireImmediately: true }, // run once with current value
+      )
     })
 
     const fileData = {

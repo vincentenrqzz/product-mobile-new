@@ -6,7 +6,7 @@ import { ThemedText } from '@/components/ThemedText'
 import { ThemedView } from '@/components/ThemedView'
 import AppLogo from '@/components/ui/AppLogo'
 import { pendingImages, pendingTasks } from '@/lib/constants'
-import { stopQueueLoop } from '@/services/queues/startQueueLoop'
+import { startQueueLoop, stopQueueLoop } from '@/services/queues/startQueueLoop'
 import useAuthStore from '@/store/auth'
 import useTaskStore from '@/store/tasks'
 
@@ -26,7 +26,7 @@ export default function Settings() {
         style={[styles.button]}
         onPress={async () => {
           stopQueueLoop() // ← instantly cancels any pending delay
-          useAuthStore.getState().logout()
+          // useAuthStore.getState().logout()
           console.log('Logging out')
         }}
       >
@@ -41,6 +41,7 @@ export default function Settings() {
       <TouchableOpacity
         style={[styles.button]}
         onPress={async () => {
+          startQueueLoop()
           setPendingImages(pendingImages)
           setPendingTasks(pendingTasks)
         }}
