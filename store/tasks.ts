@@ -1,4 +1,3 @@
-import { pendingImages, pendingTasks } from '@/lib/constants'
 import { ParsedFormField } from '@/types/form'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { create } from 'zustand'
@@ -168,6 +167,7 @@ interface AuthState {
   setSuccessTaskIds: (data: any[]) => void
   // ✅ add helpers
   addPendingTask: (task: any) => void
+  addPendingImages: (image: any) => void
   popNextTask: () => any | undefined
   clearAll: () => void // Added clearAll method to reset the store state and clear AsyncStorage
 }
@@ -185,8 +185,8 @@ const useTaskStore = create<AuthState>()(
         taskList: null,
         taskTypes: [],
         taskDetails: [],
-        pendingTasks: pendingTasks,
-        pendingImages: pendingImages,
+        pendingTasks: [],
+        pendingImages: [],
         tasks: [],
         successTaskIds: [],
         setTaskTypes: (data) => {
@@ -238,10 +238,25 @@ const useTaskStore = create<AuthState>()(
         setTaskDetails: (data) => {
           set({ taskDetails: data })
         },
-        // ✅ NEW: push one task
-        addPendingTask: (task) =>
-          set((s) => ({ pendingTasks: [...s.pendingTasks, task] })),
+        // can add array or object
+        addPendingTask: (taskOrTasks: any | any[]) =>
+          set((s) => ({
+            pendingTasks: [
+              ...s.pendingTasks,
+              ...(Array.isArray(taskOrTasks) ? taskOrTasks : [taskOrTasks]),
+            ],
+          })),
 
+        // BUGFIX + upgrade
+        addPendingImages: (imageOrImages: PendingImage | PendingImage[]) =>
+          set((s) => ({
+            pendingImages: [
+              ...s.pendingImages, // <-- was s.pendingTasks (bug)
+              ...(Array.isArray(imageOrImages)
+                ? imageOrImages
+                : [imageOrImages]),
+            ],
+          })),
         // ✅ NEW: FIFO pop one task
         popNextTask: () => {
           const list = get().pendingTasks
@@ -254,10 +269,14 @@ const useTaskStore = create<AuthState>()(
           await AsyncStorage.clear() // Clear all data from AsyncStorage
           // Reset all relevant store state fields to their initial values
           set({
-            taskList: null,
             taskStatuses: [],
+            taskList: null,
             taskTypes: [],
             taskDetails: [],
+            pendingTasks: [],
+            pendingImages: [],
+            tasks: [],
+            successTaskIds: [],
           })
         },
       }),
@@ -266,12 +285,12 @@ const useTaskStore = create<AuthState>()(
         name: 'tasks', // The name of the persisted storage
         storage: createJSONStorage(() => AsyncStorage),
         onRehydrateStorage: () => (state) => {
-          if (state?.pendingTasks) {
-            state?.setPendingTasks(pendingTasks) // ← inject your static data
-          }
-          if (state?.pendingImages) {
-            state?.setPendingImages(pendingImages) // ← inject your static data
-          }
+          // if (state?.pendingTasks) {
+          //   state?.setPendingTasks(pendingTasks) // ← inject your static data
+          // }
+          // if (state?.pendingImages) {
+          //   state?.setPendingImages(pendingImages) // ← inject your static data
+          // }
         },
       },
     ),

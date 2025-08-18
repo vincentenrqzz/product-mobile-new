@@ -1,3 +1,4 @@
+import useAuthStore from '@/store/auth'
 import useTaskStore from '@/store/tasks'
 import * as Network from 'expo-network'
 import { initBackgroundQueue } from './background'
@@ -6,14 +7,14 @@ import { startQueueLoop, stopQueueLoop } from './startQueueLoop'
 
 export const initTaskQueueSystem = async () => {
   console.log('[Queue Init] Initializing task queue system...')
-
+  const { isLoggedIn } = useAuthStore.getState()
   /// network watchers
   /// TBA queues mo stop if walay data ang pendingTask pero mo start mani siya automatic if naay pendingTask
   // mo listen ni siya sa internet if \
   // if walay internet kay automatic mo stop siya sa queues
   await networkWatchers(async (state) => {
     try {
-      if (state.isConnected && state.isInternetReachable) {
+      if (state.isConnected && state.isInternetReachable && isLoggedIn) {
         console.log('[Network Restored] Starting queue loop...')
         startQueueLoop()
       } else {
@@ -29,8 +30,13 @@ export const initTaskQueueSystem = async () => {
   useTaskStore.subscribe(
     (s) => s.pendingTasks.length,
     (len, prevLen) => {
-      if (prevLen === 0 && len > 0) {
+      console.log('isLoggedIn', isLoggedIn)
+      console.log('prevLen', prevLen)
+      console.log('len', len)
+      if (prevLen === 0 && len > 0 && isLoggedIn) {
         startQueueLoop()
+      } else {
+        stopQueueLoop()
       }
     },
   )
