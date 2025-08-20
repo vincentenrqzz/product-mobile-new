@@ -1,6 +1,7 @@
 import { useAppTheme } from '@/hooks/useAppTheme'
 import React, { JSX } from 'react'
 import {
+  Platform,
   StyleProp,
   TextInput,
   TextInputProps,
@@ -27,7 +28,7 @@ const InputField: React.FC<InputFieldProps> = ({
   const { colors } = useAppTheme()
   return (
     <View
-      className={`flex-row items-center  rounded-lg px-3`}
+      className={`flex-row items-center  rounded-lg px-3 ${Platform.OS === 'ios' && 'py-3'} `}
       style={[{ backgroundColor: colors.inputBackground }, style]}
     >
       {leftElement}

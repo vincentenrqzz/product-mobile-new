@@ -321,9 +321,9 @@ export default function Tasks() {
 
   return (
     <ParallaxView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#FFF', dark: '#FFF' }}
       headerContent={
-        <>
+        <View className="border-b-2 border-b-gray-100">
           <TaskHeaderContent
             timeNow={timeTicker}
             matchLogo={matchLogo}
@@ -345,7 +345,7 @@ export default function Tasks() {
               activeTab={activeTab}
             />
           </View>
-        </>
+        </View>
       }
     >
       <TaskList

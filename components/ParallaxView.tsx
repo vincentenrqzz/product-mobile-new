@@ -40,7 +40,7 @@ export default function ParallaxView({
         )}
         <Animated.View
           style={[{ backgroundColor }, styles.content]}
-          className="p-8 pb-32"
+          className="p-8 pb-14"
         >
           {children}
         </Animated.View>

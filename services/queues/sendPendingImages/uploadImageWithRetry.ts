@@ -46,7 +46,7 @@ export const uploadImageWithRetry = async (
         (cancel) => {
           if (cancel && !settled) {
             settled = true
-            unsubscribe()
+            // unsubscribe()
             signal.removeEventListener('abort', onAbort)
             controller.abort()
             reject(new Error('Upload cancelled or connection lost'))

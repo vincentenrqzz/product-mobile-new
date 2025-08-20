@@ -98,6 +98,20 @@ const TaskDetail = () => {
     userGroup.find((group) => group.GroupName === parsedTask.groupName)
       ?.Description ?? parsedTask.groupName
 
+  const doneStatuses = useMemo<string[]>(() => {
+    const res = userSettings.find(
+      (i) => i.key === 'statusesRepresentingDoneTask',
+    )
+    const raw = res?.value
+    if (!raw) return []
+    try {
+      const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw
+      return Array.isArray(parsed) ? parsed : []
+    } catch {
+      return []
+    }
+  }, [userSettings])
+
   //functions
   const escalateTask = async (item: any) => {
     try {
@@ -166,11 +180,12 @@ const TaskDetail = () => {
       case 'escalate':
         return (
           <View
-            className="flex-1 items-center justify-center gap-4 bg-white" // Centers content
+            className="items-center justify-center gap-4 bg-white" // Centers content
           >
-            {showSupportedStatusesForStartTask.map((item: any) => {
+            {showSupportedStatusesForStartTask.map((item: any, index: any) => {
               return item.includes(parsedTask?.statusId) ? (
                 <TouchableOpacity
+                  key={index}
                   className="flex flex-row items-center justify-center rounded-full  p-4 px-20"
                   style={[
                     {
@@ -210,11 +225,12 @@ const TaskDetail = () => {
                 </TouchableOpacity>
               ) : null
             })}
-            {newButtons.map((item: any) => {
+            {newButtons.map((item: any, index: any) => {
               const parseItem =
                 typeof item === 'string' ? JSON.parse(item) : item
               return parseItem.statuses.includes(parsedTask?.statusId) ? (
                 <TouchableOpacity
+                  key={index}
                   className="flex flex-row items-center justify-center rounded-full p-4 px-20"
                   disabled={isLoading}
                   onPress={async () => {
@@ -263,7 +279,7 @@ const TaskDetail = () => {
       case 'notDone':
         return (
           <View
-            className="flex-1 items-center justify-center bg-white" // Centers content
+            className=" items-center justify-center bg-white" // Centers content
           >
             {getTaskCanBeExecuted && (
               <TouchableOpacity
@@ -305,11 +321,15 @@ const TaskDetail = () => {
           </View>
         )
       case 'done':
+        const isDone =
+          !!parsedTask?.statusId && doneStatuses.includes(parsedTask.statusId)
+        console.log('isDone', isDone)
+
         return (
           <View
-            className="flex-1 items-center justify-between gap-4 bg-white" // Centers content
+            className="items-center justify-between gap-4 bg-white" // Centers content
           >
-            {getStatusRepInDoneTask?.includes(parsedTask?.statusId) ? (
+            {isDone ? (
               <TouchableOpacity
                 className=" rounded-full bg-[#00A7D3] p-4 px-20"
                 onPress={() => {
@@ -324,7 +344,7 @@ const TaskDetail = () => {
                   })
                 }}
               >
-                <Text className="text-white">{'formView'}</Text>
+                <Text className="text-white">formView</Text>
               </TouchableOpacity>
             ) : (
               <TouchableOpacity
@@ -400,11 +420,12 @@ const TaskDetail = () => {
       default:
         return (
           <View
-            className="flex-1 items-center justify-center gap-4 bg-white" // Centers content
+            className="items-center justify-center gap-4 bg-white" // Centers content
           >
-            {showSupportedStatusesForStartTask.map((item: any) => {
+            {showSupportedStatusesForStartTask.map((item: any, index: any) => {
               return item.includes(parsedTask?.statusId) ? (
                 <TouchableOpacity
+                  key={index}
                   className="flex flex-row items-center justify-center rounded-full p-4 px-20"
                   style={[
                     {

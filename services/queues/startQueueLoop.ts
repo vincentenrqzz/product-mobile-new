@@ -42,6 +42,7 @@ export const startQueueLoop = async () => {
   try {
     while (!signal.aborted) {
       const state = await getConnectionState()
+      console.log('state', state)
       if (!state.isConnected) {
         console.log('Upload paused – offline')
         try {
@@ -93,7 +94,7 @@ export const startQueueLoop = async () => {
 }
 
 export const stopQueueLoop = () => {
-  const { stopRun } = useQueueStore.getState()
+  const { stopRun, setIsRunning } = useQueueStore.getState()
   // Keep using your existing global cancel flag if you like
   useUploadStore.getState().setCancelAllUpload(true)
   console.log('stopQueueLoop: aborting current run')
