@@ -46,6 +46,8 @@ export const startQueueLoop = async () => {
       if (!state.isConnected) {
         console.log('Upload paused – offline')
         try {
+          NotificationService.sendOfflineNotification()
+          stopQueueLoop()
           await abortableDelay(DELAY_MS, signal)
         } catch (e: any) {
           if (e?.message === 'aborted') break
@@ -57,22 +59,23 @@ export const startQueueLoop = async () => {
       console.log('Queueing')
       const next = getNextTask()
       if (!next) {
-        await NotificationService.dismissAllNotification()
-        NotificationService.sendCompletedUploadPendingTaskNotification()
+        // await NotificationService.dismissAllNotification()
+        // NotificationService.sendCompletedUploadPendingTaskNotification()
         break
       }
 
-      await NotificationService.dismissAllNotification()
-      NotificationService.showBackgroundNotification()
+      // await NotificationService.dismissAllNotification()
+      // NotificationService.showBackgroundNotification()
 
       const updatedImages = await sendPendingImages()
       const updatedTasks = await sendPendingTasks()
       console.log('updatedImages', updatedImages.length)
       console.log('updatedTasks', updatedTasks)
-
-      if (!getNextTask()) {
-        await NotificationService.dismissAllNotification()
-        NotificationService.sendCompletedUploadPendingTaskNotification()
+      const nexto = getNextTask()
+      console.log('nexto', nexto)
+      if (!nexto) {
+        // await NotificationService.dismissAllNotification()
+        // NotificationService.sendCompletedUploadPendingTaskNotification()
         break
       }
 

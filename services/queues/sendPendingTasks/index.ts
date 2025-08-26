@@ -28,7 +28,10 @@ export default async () => {
     const batch = pendingTasks.slice(i, i + batchSize)
     const batchPromises = batch.map(async (pendingTask) => {
       const { task, newStatus } = pendingTask
-
+      console.log('showBackgroundNotificationByTask batchPromises')
+      NotificationService.showBackgroundNotificationByTask({
+        taskId: task.taskId,
+      })
       if (newStatus === 'done') {
         const hasRemainingImages = pendingImages.some(
           (img) => img.taskId === task.taskId,
@@ -51,10 +54,11 @@ export default async () => {
         const timeout = new Promise((_, reject) =>
           setTimeout(() => {
             controller.abort()
+
             reject(new Error('Task update timed out'))
           }, 60000),
         )
-        const send = changeTaskStatus(task._id, task, taskTypes, signal)
+        const send = changeTaskStatus(task.taskId, task, taskTypes, signal)
 
         const checker = new Promise<never>((_, reject) => {
           let settled = false
@@ -64,6 +68,7 @@ export default async () => {
               settled = true
               unsubscribe()
               signal.removeEventListener('abort', onAbort)
+
               reject(new Error('Upload cancelled or connection lost'))
             }
           }
@@ -91,7 +96,8 @@ export default async () => {
         if (response?.data) {
           return { success: true, taskId: task.taskId }
         }
-        NotificationService.sendUploadFailedNotification()
+        // NotificationService.sendUploadFailedNotification()
+
         return {
           success: false,
           taskId: task.taskId,
@@ -99,7 +105,8 @@ export default async () => {
         }
       } catch (error: any) {
         console.log('Error', error)
-        NotificationService.sendUploadFailedNotification()
+        // NotificationService.sendUploadFailedNotification()
+
         return { success: false, taskId: task.taskId, reason: error.message }
       }
     })
@@ -109,8 +116,15 @@ export default async () => {
     results.forEach((result) => {
       console.log('results', results)
       if (result.success) {
+        NotificationService.sendCompletedUploadPendingTaskNotification({
+          taskId: result.taskId,
+        })
         successTaskIds.push(result.taskId)
       } else {
+        NotificationService.sendUploadFailedNotification({
+          taskId: result.taskId,
+          desc: result.reason,
+        })
         failedTaskIds.push(result.taskId)
       }
     })
