@@ -22,7 +22,7 @@ export const uploadPendingTask = async () => {
     const network = await Network.getNetworkStateAsync()
 
     if (network.isConnected || !network.isInternetReachable) {
-      console.log('No connection. Waiting to retry.')
+      // console.log('No connection. Waiting to retry.')
       await sendOfflineNotification()
       await Notifications.dismissAllNotificationsAsync()
 
@@ -36,11 +36,11 @@ export const uploadPendingTask = async () => {
     for (const item of pendingTasks) {
       // Replace this with your actual upload logic
       //   await uploadToServer(item)
-      console.log('uploading pending task...')
+      // console.log('uploading pending task...')
     }
 
-    console.log('Background upload complete.')
+    // console.log('Background upload complete.')
   } catch (err) {
-    console.error('Error uploading in background:', err)
+    // console.error('Error uploading in background:', err)
   }
 }

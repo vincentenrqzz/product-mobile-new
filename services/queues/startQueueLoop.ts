@@ -30,11 +30,11 @@ export const startQueueLoop = async () => {
     useQueueStore.getState()
 
   if (isRunning) {
-    console.log('startQueueLoop: already running')
+    // console.log('startQueueLoop: already running')
     return
   }
 
-  console.log('startQueueLoop: starting')
+  // console.log('startQueueLoop: starting')
   const controller = startRun()
   const { signal } = controller
   useUploadStore.getState().setCancelAllUpload(false)
@@ -42,9 +42,9 @@ export const startQueueLoop = async () => {
   try {
     while (!signal.aborted) {
       const state = await getConnectionState()
-      console.log('state', state)
+      // console.log('state', state)
       if (!state.isConnected) {
-        console.log('Upload paused – offline')
+        // console.log('Upload paused – offline')
         try {
           NotificationService.sendOfflineNotification()
           stopQueueLoop()
@@ -56,7 +56,7 @@ export const startQueueLoop = async () => {
         continue
       }
 
-      console.log('Queueing')
+      // console.log('Queueing')
       const next = getNextTask()
       if (!next) {
         // await NotificationService.dismissAllNotification()
@@ -69,10 +69,10 @@ export const startQueueLoop = async () => {
 
       const updatedImages = await sendPendingImages()
       const updatedTasks = await sendPendingTasks()
-      console.log('updatedImages', updatedImages.length)
-      console.log('updatedTasks', updatedTasks)
+      // console.log('updatedImages', updatedImages.length)
+      // console.log('updatedTasks', updatedTasks)
       const nexto = getNextTask()
-      console.log('nexto', nexto)
+      // console.log('nexto', nexto)
       if (!nexto) {
         // await NotificationService.dismissAllNotification()
         // NotificationService.sendCompletedUploadPendingTaskNotification()
@@ -83,14 +83,14 @@ export const startQueueLoop = async () => {
         await abortableDelay(DELAY_MS, signal)
       } catch (e: any) {
         if (e?.message === 'aborted') {
-          console.log('Queue loop aborted by stopQueueLoop()')
+          // console.log('Queue loop aborted by stopQueueLoop()')
           break
         }
         throw e
       }
     }
   } finally {
-    console.log('startQueueLoop: stopping / cleanup')
+    // console.log('startQueueLoop: stopping / cleanup')
     stopRun()
     await NotificationService.dismissAllNotification()
   }
@@ -100,6 +100,6 @@ export const stopQueueLoop = () => {
   const { stopRun, setIsRunning } = useQueueStore.getState()
   // Keep using your existing global cancel flag if you like
   useUploadStore.getState().setCancelAllUpload(true)
-  console.log('stopQueueLoop: aborting current run')
+  // console.log('stopQueueLoop: aborting current run')
   stopRun()
 }

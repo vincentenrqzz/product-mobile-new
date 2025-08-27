@@ -49,7 +49,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
             height: 20,
             borderRadius: 10,
             borderWidth: 2,
-            borderColor: error ? '#EF4444' : isSelected ? '#3B82F6' : '#D1D5DB',
+            borderColor: error ? '#EF4444' : isSelected ? '#241c4c' : '#D1D5DB',
             backgroundColor: '#FFFFFF',
             alignItems: 'center',
             justifyContent: 'center',
@@ -62,7 +62,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
                 width: 10,
                 height: 10,
                 borderRadius: 5,
-                backgroundColor: '#3B82F6',
+                backgroundColor: '#241c4c',
               }}
             />
           )}
@@ -71,7 +71,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
         {/* Label */}
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 14,
             color: '#374151',
             flex: 1,
           }}
@@ -88,7 +88,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
       {label && (
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '500',
             color: error ? '#EF4444' : '#374151',
             marginBottom: 12,
@@ -106,7 +106,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
       {(error || helperText) && (
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: error ? '#EF4444' : '#6B7280',
             marginTop: 6,
           }}

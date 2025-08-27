@@ -8,6 +8,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { initTaskQueueSystem } from '@/services/queues'
@@ -39,13 +40,15 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const [containerWidth, setContainerWidth] = React.useState(0)
+  const insets = useSafeAreaInsets()
 
   return (
     <View
-      className="px-auto absolute bottom-0 left-0 right-0 pb-6"
+      className="px-auto absolute bottom-0 left-0 right-0"
+      style={{ paddingBottom: insets.bottom + 20 }}
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout
-        console.log('Container Width:', width)
+        // console.log('Container Width:', width)
         if (width > 0) {
           setContainerWidth(width)
         }
@@ -209,6 +212,8 @@ const TabItem: React.FC<TabItemProps> = ({
         return 'menu'
       case 'home':
         return isFocused ? 'home' : 'home-outline'
+      case 'task-detail':
+        return 'document-text-outline' // This won't show since href: null
       default:
         return 'help-circle-outline'
     }
@@ -216,8 +221,8 @@ const TabItem: React.FC<TabItemProps> = ({
 
   const iconColor = isFocused
     ? isDark
-      ? '#60A5FA'
-      : '#3B82F6'
+      ? '#667EEA'
+      : '#4F46E5'
     : isDark
       ? '#6B7280'
       : '#9CA3AF'

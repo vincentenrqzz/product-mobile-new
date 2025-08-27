@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native'
 
-interface SingleTextProps extends TextInputProps {
+interface TextFormProps extends TextInputProps {
   label?: string
   error?: string
   helperText?: string
@@ -19,9 +19,11 @@ interface SingleTextProps extends TextInputProps {
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
   onRightIconPress?: () => void
+  minHeight?: number
+  maxHeight?: number
 }
 
-const SingleText: React.FC<SingleTextProps> = ({
+const TextForm: React.FC<TextFormProps> = ({
   label,
   error,
   helperText,
@@ -34,6 +36,8 @@ const SingleText: React.FC<SingleTextProps> = ({
   onFocus,
   onBlur,
   value,
+  minHeight = 100,
+  maxHeight = 200,
   ...props
 }) => {
   const [isFocused, setIsFocused] = useState(false)
@@ -54,7 +58,7 @@ const SingleText: React.FC<SingleTextProps> = ({
       {label && (
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '500',
             color: error ? '#EF4444' : '#374151',
             marginBottom: 8,
@@ -65,34 +69,42 @@ const SingleText: React.FC<SingleTextProps> = ({
         </Text>
       )}
 
-      {/* Input container */}
+      {/* Textarea container */}
       <View
         style={{
           flexDirection: 'row',
-          alignItems: 'center',
+          alignItems: 'flex-start',
           borderWidth: 1,
           borderRadius: 8,
           backgroundColor: '#FFFFFF',
           paddingHorizontal: 12,
           paddingVertical: 12,
-          borderColor: error ? '#FCA5A5' : isFocused ? '#3B82F6' : '#D1D5DB',
+          borderColor: error ? '#FCA5A5' : isFocused ? '#241c4c' : '#D1D5DB',
+          minHeight: minHeight,
+          maxHeight: maxHeight,
         }}
       >
         {leftIcon && (
-          <View style={{ marginRight: 12, opacity: 0.7 }}>{leftIcon}</View>
+          <View style={{ marginRight: 12, opacity: 0.7, marginTop: 2 }}>
+            {leftIcon}
+          </View>
         )}
 
         <TextInput
           style={[
             {
               flex: 1,
-              fontSize: 16,
+              fontSize: 14,
               color: '#111827',
               paddingVertical: 0,
+              textAlignVertical: 'top',
+              minHeight: minHeight - 24, // Account for container padding
             },
             inputStyle,
           ]}
           placeholderTextColor="#9CA3AF"
+          multiline={true}
+          numberOfLines={4}
           onFocus={handleFocus}
           onBlur={handleBlur}
           value={value}
@@ -102,7 +114,7 @@ const SingleText: React.FC<SingleTextProps> = ({
         {rightIcon && (
           <TouchableOpacity
             onPress={onRightIconPress}
-            style={{ marginLeft: 12, opacity: 0.7 }}
+            style={{ marginLeft: 12, opacity: 0.7, marginTop: 2 }}
             activeOpacity={0.6}
           >
             {rightIcon}
@@ -114,7 +126,7 @@ const SingleText: React.FC<SingleTextProps> = ({
       {(error || helperText) && (
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: error ? '#EF4444' : '#6B7280',
             marginTop: 6,
           }}
@@ -126,4 +138,4 @@ const SingleText: React.FC<SingleTextProps> = ({
   )
 }
 
-export default SingleText
+export default TextForm

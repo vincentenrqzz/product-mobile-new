@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm uninstall:*)",
+      "Bash(npx expo install:*)",
+      "Bash(tail:*)",
+      "Bash(npm run lint)",
+      "Bash(npx tsc:*)",
+      "Bash(timeout 60s npm start)",
+      "Bash(npx expo start:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(npm run android:*)",
+      "Bash(git diff:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -18,7 +18,7 @@ export const stopNetworkWatchers = () => {
   if (subscription) {
     subscription.remove()
     subscription = null
-    console.log('[Network Watcher] Stopped watching')
+    // console.log('[Network Watcher] Stopped watching')
   }
 }
 
@@ -27,7 +27,7 @@ export const getConnectionState = async (): Promise<Network.NetworkState> => {
     const state = await Network.getNetworkStateAsync()
     return state
   } catch (err) {
-    console.error('[Network] Error checking connection type:', err)
+    // console.error('[Network] Error checking connection type:', err)
     throw err
   }
 }

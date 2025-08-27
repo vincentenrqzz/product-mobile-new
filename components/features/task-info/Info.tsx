@@ -285,7 +285,7 @@ export const Info = ({
     })
   }, [item, accordionForm])
 
-  console.log(`${item.inputType}: ${item?.label}`)
+  // console.log(`${item.inputType}: ${item?.label}`)
   // render
   return (
     <View className="mb-10 flex-row  flex-wrap gap-6 rounded-md bg-[#F1FCFF] p-4 ">

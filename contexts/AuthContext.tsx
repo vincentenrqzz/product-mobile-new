@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     const credentialsError = { errorCode: 1 }
 
     try {
-      console.log('Starting login...')
+      // console.log('Starting login...')
       let data
       if (!useBiometrics) {
         const response = await onLogin.mutateAsync({
@@ -113,10 +113,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { IdToken, ExpiresIn } = data.AuthenticationResult
       await AsyncStorage.setItem('IdToken', IdToken)
 
-      console.log('Token saved, setting authenticated to true')
+      // console.log('Token saved, setting authenticated to true')
       setIsAuthenticated(true)
 
-      console.log('Attempting navigation to tabs')
+      // console.log('Attempting navigation to tabs')
     } catch (error: any) {
       setCredentials({ username: '', password: '' })
       setOtpChallenge(null)

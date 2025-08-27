@@ -14,7 +14,6 @@ import {
   ThemeProvider,
 } from '@react-navigation/native'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import Constants from 'expo-constants'
 import { useFonts } from 'expo-font'
 import * as Notifications from 'expo-notifications'
 import { Stack } from 'expo-router'
@@ -25,7 +24,7 @@ import '../global.css'
 // Keep splash screen until fonts load
 SplashScreen.preventAutoHideAsync()
 
-console.log('Constants', Constants)
+// console.log('Constants', Constants)
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react/require-default-props */
 import type { FormikValues } from 'formik'
 import type { FC, JSX } from 'react'
 

@@ -89,7 +89,7 @@ export class NotificationService {
           ? { channelId: this.channelForTask(taskId) }
           : null,
     })
-    console.log('TRIGGER BACKGROUDNOTIF', id)
+    // console.log('TRIGGER BACKGROUDNOTIF', id)
     this.taskToNotifId.set(taskId, id)
     return id
   }

@@ -450,7 +450,7 @@ const PrinterButton = React.forwardRef<any, PrinterButtonProps>(
         if (await Sharing.isAvailableAsync()) {
           await Sharing.shareAsync(uri)
         } else {
-          console.log('Sharing is not available on this device')
+          // console.log('Sharing is not available on this device')
         }
       } catch (error) {
         console.error('Error while printing:', error)

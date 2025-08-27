@@ -10,15 +10,34 @@ import { useQueryClient } from '@tanstack/react-query'
 import moment from 'moment-timezone'
 import 'moment/locale/en-gb'
 import 'moment/locale/he'
+import { createSafeDate, safeGetTime } from '@/lib/safeDate'
 import React, { useEffect, useMemo, useState } from 'react'
-import { View } from 'react-native'
+import { View, StyleSheet, Dimensions } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
+import Animated, { 
+  FadeIn, 
+  FadeInDown, 
+  useSharedValue, 
+  useAnimatedStyle,
+  interpolate,
+  Extrapolate
+} from 'react-native-reanimated'
+import { useAppTheme } from '@/hooks/useAppTheme'
 
+/**
+ * Modern Tasks Component - Main task management interface
+ * Features: Gradient backgrounds, smooth animations, enhanced UX
+ */
 export default function Tasks() {
   // built-in
   const queryClient = useQueryClient()
+  const { colors, isDark } = useAppTheme()
+  const screenHeight = Dimensions.get('window').height
+  
   //store
   const { userSettings, userInfo } = useUserInfoStore()
   const { tasks, pendingTasks, successTaskIds } = useTaskStore()
+  
   //state
   const [timeNow, setTimeNow] = useState<string | Date>('')
   const matchLogo = userSettings.find((item) => item.key === 'tenantLogo')
@@ -31,6 +50,11 @@ export default function Tasks() {
   const [selectedType, setSelectedType] = useState('')
   const [timeTicker, setTimeTicker] = useState('')
   const [isRefresh, setIsRefresh] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  
+  // Animation values
+  const scrollY = useSharedValue(0)
+  const headerOpacity = useSharedValue(1)
   //memo
   const statusesTabs = useMemo(() => {
     const match = userSettings.find((item) => item.key === 'statusesOnTabs')
@@ -179,21 +203,16 @@ export default function Tasks() {
     Object.keys(res).forEach((tabKey) => {
       if (res[tabKey]) {
         res[tabKey].sort((a: any, b: any) => {
-          const dateA = a.executionEndDate
-            ? new Date(a.executionEndDate)
-            : new Date(0)
-          const dateB = b.executionEndDate
-            ? new Date(b.executionEndDate)
-            : new Date(0)
+          const timeA = safeGetTime(a.executionEndDate)
+          const timeB = safeGetTime(b.executionEndDate)
 
-          if (dateA.getTime() === 0 && dateB.getTime() === 0) return 0
-
-          if (dateA.getTime() === 0) return 1
-          if (dateB.getTime() === 0) return -1
+          if (timeA === 0 && timeB === 0) return 0
+          if (timeA === 0) return 1
+          if (timeB === 0) return -1
 
           return statusesTabOnSort[tabKey] === 1
-            ? dateA.getTime() - dateB.getTime()
-            : dateB.getTime() - dateA.getTime()
+            ? timeA - timeB
+            : timeB - timeA
         })
       }
     })
@@ -223,14 +242,25 @@ export default function Tasks() {
     }
 
     return data.filter((item) => {
-      const itemDateInIsrael = moment
-        .utc(item.executionEndDate)
-        .tz('Asia/Jerusalem')
-        .format('DD/MM/YYYY')
+      // Skip items without valid execution end date
+      if (!item.executionEndDate) {
+        return false
+      }
 
-      const matchDateString = moment(matchDate).format('DD/MM/YYYY')
+      try {
+        const itemDateInIsrael = moment
+          .utc(item.executionEndDate)
+          .tz('Asia/Jerusalem')
+          .format('DD/MM/YYYY')
 
-      return itemDateInIsrael === matchDateString
+        const matchDateString = moment(matchDate).format('DD/MM/YYYY')
+
+        return itemDateInIsrael === matchDateString
+      } catch (error) {
+        // If date parsing fails, exclude the item from results
+        console.warn('Failed to parse date for filtering:', item.executionEndDate, error)
+        return false
+      }
     })
   }
   const filterBySearch = (data: any[], searchValue: string) => {
@@ -272,9 +302,10 @@ export default function Tasks() {
     }, 1000)
   }
 
-  const onRefetchTask = () => {
+  const onRefetchTask = async () => {
     try {
       setIsRefresh(true)
+      setIsLoading(true)
 
       const keys: string[][] = [
         ['userSettings'],
@@ -285,15 +316,40 @@ export default function Tasks() {
         ['forms'],
       ]
 
-      keys.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: key })
-      })
+      await Promise.all(
+        keys.map((key) => 
+          queryClient.invalidateQueries({ queryKey: key })
+        )
+      )
     } catch (error) {
       console.error('Failed to refetch tasks:', error)
     } finally {
       setIsRefresh(false)
+      setIsLoading(false)
     }
   }
+  
+  // Animated header styles
+  const animatedHeaderStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, 100],
+      [1, 0.9],
+      Extrapolate.CLAMP
+    )
+    
+    const scale = interpolate(
+      scrollY.value,
+      [0, 100],
+      [1, 0.98],
+      Extrapolate.CLAMP
+    )
+    
+    return {
+      opacity,
+      transform: [{ scale }]
+    }
+  })
 
   //mount unmount
   useEffect(() => {
@@ -320,41 +376,124 @@ export default function Tasks() {
   }, [tasks, selectedType, timeNow, searchText])
 
   return (
-    <ParallaxView
-      headerBackgroundColor={{ light: '#FFF', dark: '#FFF' }}
-      headerContent={
-        <View className="border-b-2 border-b-gray-100">
-          <TaskHeaderContent
-            timeNow={timeTicker}
-            matchLogo={matchLogo}
-            setTimeNow={setTimeNow}
-            onRefreshTasks={onRefreshTasks}
-          />
-          <View>
-            <Searchbar
-              value={searchText}
-              onChangeText={setSearchText}
-              searchbarBackgroundColor={{ light: '#E4F2F7', dark: '#263F49' }}
-              setTimeNow={setTimeNow}
-              onRefreshTasks={onRefreshTasks}
-              timeNow={timeNow}
-            />
-            <TabTask
-              statusesTabs={statusesTabs}
-              setActiveTab={setActiveTab}
-              activeTab={activeTab}
-            />
-          </View>
-        </View>
-      }
-    >
-      <TaskList
-        tasks={tasksToDisplay}
-        dateSeparator={dateSeparator}
-        forEscalate={activeTab}
-        onRefetchTask={onRefetchTask}
-        isRefresh={isRefresh}
+    <View style={styles.container}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={
+          isDark 
+            ? ['#1a1a2e', '#16213e', '#0f3460'] 
+            : ['#ffffff', '#f8faff', '#e8f4f8']
+        }
+        style={StyleSheet.absoluteFillObject}
       />
-    </ParallaxView>
+      
+      <ParallaxView
+        headerBackgroundColor={{ light: 'transparent', dark: 'transparent' }}
+        style={{ backgroundColor: 'transparent' }}
+        headerContent={
+          <Animated.View 
+            style={[animatedHeaderStyle]}
+            entering={FadeInDown.duration(600).springify()}
+          >
+            {/* Modern Header with Glassmorphism Effect */}
+            <View className="relative">
+              {/* Header Background Blur */}
+              <LinearGradient
+                colors={
+                  isDark
+                    ? ['rgba(26, 26, 46, 0.95)', 'rgba(22, 33, 62, 0.9)']
+                    : ['rgba(255, 255, 255, 0.95)', 'rgba(248, 250, 255, 0.9)']
+                }
+                className="absolute inset-0 rounded-b-3xl"
+              />
+              
+              {/* Header Content */}
+              <View 
+                className="px-4 py-2 rounded-b-3xl border-b-2"
+                style={{
+                  borderBottomColor: isDark 
+                    ? 'rgba(255, 255, 255, 0.1)' 
+                    : 'rgba(0, 0, 0, 0.05)'
+                }}
+              >
+                <TaskHeaderContent
+                  timeNow={timeTicker}
+                  matchLogo={matchLogo}
+                  setTimeNow={setTimeNow}
+                  onRefreshTasks={onRefreshTasks}
+                />
+                
+                {/* Enhanced Search and Tab Section */}
+                <View className="mt-4">
+                  <Searchbar
+                    value={searchText}
+                    onChangeText={setSearchText}
+                    searchbarBackgroundColor={{ 
+                      light: 'rgba(228, 242, 247, 0.8)', 
+                      dark: 'rgba(38, 63, 73, 0.8)' 
+                    }}
+                    setTimeNow={setTimeNow}
+                    onRefreshTasks={onRefreshTasks}
+                    timeNow={timeNow}
+                  />
+                  <View className="mt-2">
+                    <TabTask
+                      statusesTabs={statusesTabs}
+                      setActiveTab={setActiveTab}
+                      activeTab={activeTab}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+          </Animated.View>
+        }
+      >
+        {/* Enhanced Task List Container */}
+        <Animated.View 
+          entering={FadeIn.duration(800).delay(200)}
+          className="flex-1"
+        >
+          <TaskList
+            tasks={tasksToDisplay}
+            dateSeparator={dateSeparator}
+            forEscalate={activeTab}
+            onRefetchTask={onRefetchTask}
+            isRefresh={isRefresh}
+          />
+        </Animated.View>
+      </ParallaxView>
+    </View>
   )
 }
+
+// Modern Styles
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
+  gradientBackground: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    height: '100%',
+  },
+  headerGlass: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    backdropFilter: 'blur(10px)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  darkHeaderGlass: {
+    backgroundColor: 'rgba(26, 26, 46, 0.9)',
+    backdropFilter: 'blur(10px)',
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  contentContainer: {
+    flex: 1,
+    paddingTop: 8,
+  },
+})

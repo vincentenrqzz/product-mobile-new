@@ -1,6 +1,6 @@
+import { MaterialIcons } from '@expo/vector-icons'
 import React from 'react'
 import {
-  ActivityIndicator,
   Text,
   TextStyle,
   TouchableOpacity,
@@ -8,34 +8,28 @@ import {
   ViewStyle,
 } from 'react-native'
 
-interface SubmitButtonProps extends TouchableOpacityProps {
-  title: string
+interface PrinterButtonProps extends TouchableOpacityProps {
+  title?: string
   onPress: () => void
-  loading?: boolean
   disabled?: boolean
   variant?: 'primary' | 'secondary' | 'outline'
   size?: 'small' | 'medium' | 'large'
   containerStyle?: ViewStyle
   textStyle?: TextStyle
-  leftIcon?: React.ReactNode
-  rightIcon?: React.ReactNode
+  icon?: React.ReactNode
 }
 
-const SubmitButton: React.FC<SubmitButtonProps> = ({
-  title,
+const PrinterButton: React.FC<PrinterButtonProps> = ({
+  title = 'Print',
   onPress,
-  loading = false,
   disabled = false,
   variant = 'primary',
   size = 'medium',
   containerStyle,
   textStyle,
-  leftIcon,
-  rightIcon,
+  icon,
   ...props
 }) => {
-  const isDisabled = disabled || loading
-
   // Size configurations
   const sizeConfig = {
     small: {
@@ -58,6 +52,18 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
     },
   }
 
+  // Default printer icon if none provided
+  const defaultIcon = (
+    <MaterialIcons
+      name="print"
+      size={sizeConfig[size].fontSize * 1.2}
+      color={
+        variant === 'outline' ? (disabled ? '#9CA3AF' : '#241c4c') : '#FFFFFF'
+      }
+      style={{ marginRight: 8 }}
+    />
+  )
+
   // Variant configurations
   const getVariantStyles = () => {
     const baseStyle = {
@@ -65,6 +71,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
+      alignSelf: 'flex-start' as const,
       ...sizeConfig[size],
     }
 
@@ -73,7 +80,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         return {
           container: {
             ...baseStyle,
-            backgroundColor: isDisabled ? '#9CA3AF' : '#3B82F6',
+            backgroundColor: disabled ? '#9CA3AF' : '#241c4c',
             borderWidth: 0,
           },
           text: {
@@ -86,12 +93,12 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         return {
           container: {
             ...baseStyle,
-            backgroundColor: isDisabled ? '#F3F4F6' : '#F9FAFB',
+            backgroundColor: disabled ? '#F3F4F6' : '#F9FAFB',
             borderWidth: 1,
-            borderColor: isDisabled ? '#D1D5DB' : '#E5E7EB',
+            borderColor: disabled ? '#D1D5DB' : '#E5E7EB',
           },
           text: {
-            color: isDisabled ? '#9CA3AF' : '#374151',
+            color: disabled ? '#9CA3AF' : '#374151',
             fontWeight: '600' as const,
             fontSize: sizeConfig[size].fontSize,
           },
@@ -100,14 +107,12 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
         return {
           container: {
             ...baseStyle,
-            backgroundColor: isDisabled ? '#9CA3AF' : '#3B82F6',
+            backgroundColor: 'transparent',
             borderWidth: 1,
-            borderColor: isDisabled ? '#D1D5DB' : '#3B82F6',
-            alignSelf: 'center' as const, // Centers the button
-            minWidth: 250, // Minimum width for better UX
+            borderColor: disabled ? '#D1D5DB' : '#241c4c',
           },
           text: {
-            color: '#FFFFFF',
+            color: disabled ? '#9CA3AF' : '#241c4c',
             fontWeight: '600' as const,
             fontSize: sizeConfig[size].fontSize,
           },
@@ -128,37 +133,14 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
     <TouchableOpacity
       style={[styles.container, containerStyle]}
       onPress={onPress}
-      disabled={isDisabled}
-      activeOpacity={isDisabled ? 1 : 0.8}
+      disabled={disabled}
+      activeOpacity={disabled ? 1 : 0.7}
       {...props}
     >
-      {leftIcon && !loading && (
-        <React.Fragment>
-          {leftIcon}
-          <Text style={{ width: 8 }} />
-        </React.Fragment>
-      )}
-
-      {loading && (
-        <React.Fragment>
-          <ActivityIndicator
-            size="small"
-            color={variant === 'primary' ? '#FFFFFF' : '#3B82F6'}
-          />
-          <Text style={{ width: 8 }} />
-        </React.Fragment>
-      )}
-
+      {icon || defaultIcon}
       <Text style={[styles.text, textStyle]}>{title}</Text>
-
-      {rightIcon && !loading && (
-        <React.Fragment>
-          <Text style={{ width: 8 }} />
-          {rightIcon}
-        </React.Fragment>
-      )}
     </TouchableOpacity>
   )
 }
 
-export default SubmitButton
+export default PrinterButton

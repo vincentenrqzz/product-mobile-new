@@ -6,7 +6,7 @@ import { networkWatchers } from './networkWatcher'
 import { startQueueLoop, stopQueueLoop } from './startQueueLoop'
 
 export const initTaskQueueSystem = async () => {
-  console.log('[Queue Init] Initializing task queue system...')
+  // console.log('[Queue Init] Initializing task queue system...')
   const { isLoggedIn } = useAuthStore.getState()
   /// network watchers
   /// TBA queues mo stop if walay data ang pendingTask pero mo start mani siya automatic if naay pendingTask
@@ -15,14 +15,14 @@ export const initTaskQueueSystem = async () => {
   await networkWatchers(async (state) => {
     try {
       if (state.isConnected && state.isInternetReachable && isLoggedIn) {
-        console.log('[Network Restored] Starting queue loop...')
+        // console.log('[Network Restored] Starting queue loop...')
         startQueueLoop()
       } else {
         stopQueueLoop()
-        console.log('[Network Lost] Waiting to retry...')
+        // console.log('[Network Lost] Waiting to retry...')
       }
     } catch (error) {
-      console.log('networkWatchers error', error)
+      // console.log('networkWatchers error', error)
     }
   })
 
@@ -30,9 +30,9 @@ export const initTaskQueueSystem = async () => {
   useTaskStore.subscribe(
     (s) => s.pendingTasks.length,
     (len, prevLen) => {
-      console.log('isLoggedIn', isLoggedIn)
-      console.log('prevLen', prevLen)
-      console.log('len', len)
+      // console.log('isLoggedIn', isLoggedIn)
+      // console.log('prevLen', prevLen)
+      // console.log('len', len)
       if (prevLen === 0 && len > 0 && isLoggedIn) {
         startQueueLoop()
       } else {
@@ -45,13 +45,13 @@ export const initTaskQueueSystem = async () => {
     const state = await Network.getNetworkStateAsync()
 
     if (state.isConnected && state.isInternetReachable) {
-      console.log('[Init] Device is online, starting initial queue run...')
+      // console.log('[Init] Device is online, starting initial queue run...')
       startQueueLoop()
     } else {
-      console.log('[Init] Device is offline. Waiting for connectivity...')
+      // console.log('[Init] Device is offline. Waiting for connectivity...')
     }
   } catch (err) {
-    console.log('[Init Error] Failed to check network state:', err)
+    // console.log('[Init Error] Failed to check network state:', err)
   }
 
   // Register background task

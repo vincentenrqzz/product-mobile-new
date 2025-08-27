@@ -101,7 +101,7 @@ export const uploadImageWithRetry = async (
       cancelPromise,
     ])
 
-    console.log('result uploadImagewithretryo')
+    // console.log('result uploadImagewithretryo')
     if (result && !result?.error) {
       return item
     } else {
@@ -110,7 +110,7 @@ export const uploadImageWithRetry = async (
       throw new Error(errorMessage)
     }
   } catch (err: any) {
-    console.log('err', err)
+    // console.log('err', err)
     const isNetworkError =
       err.message.includes('Network Error') ||
       err.message.includes('connection lost') ||

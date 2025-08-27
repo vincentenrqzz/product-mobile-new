@@ -21,7 +21,7 @@ export const showBackgroundNotification = async (news: any) => {
 
 // ✅ Global task definition — MUST be outside any hook or function
 TaskManager.defineTask(NEWS_TASK, async () => {
-  console.log('[Background Task] Triggered') // Add this
+  // console.log('[Background Task] Triggered') // Add this
 
   try {
     // Replace this with your actual data fetching logic
@@ -45,8 +45,8 @@ export const registerNewsBackgroundTask = async () => {
     await BackgroundTask.registerTaskAsync(NEWS_TASK, {
       minimumInterval: 15 * 60, // every 15 minutes
     })
-    console.log('Background task registered.')
+    // console.log('Background task registered.')
   } else {
-    console.log('Background task already registered.')
+    // console.log('Background task already registered.')
   }
 }

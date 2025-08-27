@@ -9,8 +9,8 @@ export const registerBackgroundQueueTask = async () => {
     await BackgroundTask.registerTaskAsync(TASK_QUEUE_UPLOAD, {
       minimumInterval: 15 * 60, // every 15 minutes
     })
-    console.log('Background task registered.')
+    // console.log('Background task registered.')
   } else {
-    console.log('Background task already registered.')
+    // console.log('Background task already registered.')
   }
 }

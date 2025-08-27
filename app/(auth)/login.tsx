@@ -29,7 +29,7 @@ export default function login() {
           setEnvState(storedEnv)
         }
       } catch (error) {
-        console.log('Error loading envState from AsyncStorage', error)
+        // console.log('Error loading envState from AsyncStorage', error)
       }
     }
 
@@ -53,7 +53,7 @@ export default function login() {
       }
       await AsyncStorage.setItem('envState', env)
     } catch (error) {
-      console.log('Error saving envState to AsyncStorage', error)
+      // console.log('Error saving envState to AsyncStorage', error)
     }
   }
 
@@ -69,7 +69,7 @@ export default function login() {
         }, 100)
       })
       .catch((error) => {
-        console.log('error', error)
+        // console.log('error', error)
         const isNetworkError = error.message?.toLowerCase() === 'network error'
         actions.setFieldError(
           'customError',
@@ -79,7 +79,7 @@ export default function login() {
   }
 
   const onForgotPasswordPress = async () => {
-    console.log('Forgot password button pressed')
+    // console.log('Forgot password button pressed')
     // Add your forgot password logic here
     // router.push("/forgot-password");
   }

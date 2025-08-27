@@ -67,8 +67,8 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
             height: 20,
             borderRadius: 4,
             borderWidth: 2,
-            borderColor: error ? '#EF4444' : isSelected ? '#3B82F6' : '#D1D5DB',
-            backgroundColor: isSelected ? '#3B82F6' : '#FFFFFF',
+            borderColor: error ? '#EF4444' : isSelected ? '#241c4c' : '#D1D5DB',
+            backgroundColor: isSelected ? '#241c4c' : '#FFFFFF',
             alignItems: 'center',
             justifyContent: 'center',
             marginRight: 12,
@@ -78,7 +78,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
             <Text
               style={{
                 color: '#FFFFFF',
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: 'bold',
               }}
             >
@@ -90,7 +90,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
         {/* Label */}
         <Text
           style={{
-            fontSize: 16,
+            fontSize: 14,
             color: '#374151',
             flex: 1,
           }}
@@ -107,7 +107,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
       {label && (
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '500',
             color: error ? '#EF4444' : '#374151',
             marginBottom: 12,
@@ -127,7 +127,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
       {(error || helperText) && (
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: error ? '#EF4444' : '#6B7280',
             marginTop: 6,
           }}

@@ -13,7 +13,7 @@ const getCoordinatesFromAddress = async (address: string) => {
     const { lat, lng } = data.results[0].geometry.location // Extract latitude and longitude
     return { latitude: lat, longitude: lng } // Return coordinates with the names 'latitude' and 'longitude'
   } else {
-    console.log('Geocoding error:', data.status)
+    // console.log('Geocoding error:', data.status)
     return { latitude: undefined, longitude: undefined } // Return coordinates with the names 'latitude' and 'longitude'
   }
 }

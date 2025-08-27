@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { Alert, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
+import { isValidDate } from '@/lib/safeDate'
 
 interface DatePickerButtonProps {
   label?: string
@@ -39,7 +40,18 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
   }
 
   const formatDisplayDate = (dateString: string) => {
+    // Validate date string before creating Date object
+    if (!dateString) {
+      return 'Invalid date'
+    }
+    
     const date = new Date(dateString)
+    
+    // Check if the date is valid using our safe utility
+    if (!isValidDate(date)) {
+      return 'Invalid date'
+    }
+    
     return date.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -63,7 +75,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
 
   // Calendar icon as text (you can replace with actual icon component)
   const CalendarIcon = () => (
-    <Text style={{ fontSize: 18, color: '#6B7280' }}>📅</Text>
+    <Text style={{ fontSize: 16, color: '#6B7280' }}>📅</Text>
   )
 
   return (
@@ -72,7 +84,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
       {label && (
         <Text
           style={{
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: '500',
             color: error ? '#EF4444' : '#374151',
             marginBottom: 8,
@@ -109,7 +121,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
         <Text
           style={{
             flex: 1,
-            fontSize: 16,
+            fontSize: 14,
             color: selectedDate ? '#111827' : '#9CA3AF',
           }}
         >
@@ -121,7 +133,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
       {(error || helperText) && (
         <Text
           style={{
-            fontSize: 12,
+            fontSize: 11,
             color: error ? '#EF4444' : '#6B7280',
             marginTop: 6,
           }}

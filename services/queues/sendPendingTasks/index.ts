@@ -28,7 +28,7 @@ export default async () => {
     const batch = pendingTasks.slice(i, i + batchSize)
     const batchPromises = batch.map(async (pendingTask) => {
       const { task, newStatus } = pendingTask
-      console.log('showBackgroundNotificationByTask batchPromises')
+      // console.log('showBackgroundNotificationByTask batchPromises')
       NotificationService.showBackgroundNotificationByTask({
         taskId: task.taskId,
       })
@@ -92,7 +92,7 @@ export default async () => {
           )
         })
         const response: any = await Promise.race([timeout, send, checker])
-        console.log('updating task', response?.data)
+        // console.log('updating task', response?.data)
         if (response?.data) {
           return { success: true, taskId: task.taskId }
         }
@@ -104,7 +104,7 @@ export default async () => {
           reason: 'invalid_response',
         }
       } catch (error: any) {
-        console.log('Error', error)
+        // console.log('Error', error)
         // NotificationService.sendUploadFailedNotification()
 
         return { success: false, taskId: task.taskId, reason: error.message }
@@ -114,7 +114,7 @@ export default async () => {
 
     // Process results
     results.forEach((result) => {
-      console.log('results', results)
+      // console.log('results', results)
       if (result.success) {
         NotificationService.sendCompletedUploadPendingTaskNotification({
           taskId: result.taskId,
