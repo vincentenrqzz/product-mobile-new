@@ -2,6 +2,7 @@ import { calculateBatchSize } from '@/lib/calculateBatchSize'
 import { changeTaskStatus } from '@/services/api/endpoints/tasks'
 import { NotificationService } from '@/services/notification'
 import useTaskStore from '@/store/tasks'
+import useUploadStore from '@/store/upload'
 import { getConnectionState } from '../networkWatcher'
 
 export default async () => {
@@ -27,7 +28,10 @@ export default async () => {
     const batch = pendingTasks.slice(i, i + batchSize)
     const batchPromises = batch.map(async (pendingTask) => {
       const { task, newStatus } = pendingTask
-
+      console.log('showBackgroundNotificationByTask batchPromises')
+      NotificationService.showBackgroundNotificationByTask({
+        taskId: task.taskId,
+      })
       if (newStatus === 'done') {
         const hasRemainingImages = pendingImages.some(
           (img) => img.taskId === task.taskId,
@@ -50,29 +54,50 @@ export default async () => {
         const timeout = new Promise((_, reject) =>
           setTimeout(() => {
             controller.abort()
+
             reject(new Error('Task update timed out'))
           }, 60000),
         )
-        const send = changeTaskStatus(task._id, task, taskTypes, signal)
+        const send = changeTaskStatus(task.taskId, task, taskTypes, signal)
 
-        const cancelRef = false
         const checker = new Promise<never>((_, reject) => {
-          const intervalId = setInterval(() => {
-            if (cancelRef) {
-              clearInterval(intervalId)
-              controller.abort()
+          let settled = false
 
-              reject(new Error('Task update cancelled or connection lost'))
+          const onAbort = () => {
+            if (!settled) {
+              settled = true
+              unsubscribe()
+              signal.removeEventListener('abort', onAbort)
+
+              reject(new Error('Upload cancelled or connection lost'))
             }
-          }, 100)
-        })
+          }
 
+          // If something else aborts, reject this promise too
+          signal.addEventListener('abort', onAbort, { once: true })
+
+          // Subscribe to cancelAllUpload changes
+          const unsubscribe = useUploadStore.subscribe(
+            (s) => s.cancelAllUpload, // selector
+            (cancel) => {
+              if (cancel && !settled) {
+                settled = true
+                // unsubscribe()
+                signal.removeEventListener('abort', onAbort)
+                controller.abort()
+                reject(new Error('Upload cancelled or connection lost'))
+              }
+            },
+            { fireImmediately: true }, // run once with current value
+          )
+        })
         const response: any = await Promise.race([timeout, send, checker])
         console.log('updating task', response?.data)
         if (response?.data) {
           return { success: true, taskId: task.taskId }
         }
-        NotificationService.sendUploadFailedNotification()
+        // NotificationService.sendUploadFailedNotification()
+
         return {
           success: false,
           taskId: task.taskId,
@@ -80,7 +105,8 @@ export default async () => {
         }
       } catch (error: any) {
         console.log('Error', error)
-        NotificationService.sendUploadFailedNotification()
+        // NotificationService.sendUploadFailedNotification()
+
         return { success: false, taskId: task.taskId, reason: error.message }
       }
     })
@@ -90,8 +116,15 @@ export default async () => {
     results.forEach((result) => {
       console.log('results', results)
       if (result.success) {
+        NotificationService.sendCompletedUploadPendingTaskNotification({
+          taskId: result.taskId,
+        })
         successTaskIds.push(result.taskId)
       } else {
+        NotificationService.sendUploadFailedNotification({
+          taskId: result.taskId,
+          desc: result.reason,
+        })
         failedTaskIds.push(result.taskId)
       }
     })
@@ -100,8 +133,6 @@ export default async () => {
   const remainingPendingTasks = pendingTasks.filter(
     (item) => !successTaskIds.includes(item.task.taskId),
   )
-  console.log('remainingPendingTasks', remainingPendingTasks)
-  console.log('successTaskIds', successTaskIds)
 
   setPendingTasks(remainingPendingTasks)
   return successTaskIds

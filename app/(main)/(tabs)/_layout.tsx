@@ -42,7 +42,7 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
 
   return (
     <View
-      className="px-auto absolute bottom-0 left-0 right-0 pb-20"
+      className="px-auto absolute bottom-0 left-0 right-0 pb-6"
       onLayout={(event) => {
         const { width } = event.nativeEvent.layout
         console.log('Container Width:', width)

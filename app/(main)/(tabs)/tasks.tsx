@@ -6,6 +6,7 @@ import ParallaxView from '@/components/ParallaxView'
 import getTaskByStatus from '@/lib/getTaskByStatus'
 import useTaskStore, { Task } from '@/store/tasks'
 import useUserInfoStore from '@/store/userInfo'
+import { useQueryClient } from '@tanstack/react-query'
 import moment from 'moment-timezone'
 import 'moment/locale/en-gb'
 import 'moment/locale/he'
@@ -13,6 +14,8 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { View } from 'react-native'
 
 export default function Tasks() {
+  // built-in
+  const queryClient = useQueryClient()
   //store
   const { userSettings, userInfo } = useUserInfoStore()
   const { tasks, pendingTasks, successTaskIds } = useTaskStore()
@@ -27,7 +30,7 @@ export default function Tasks() {
   const [filteredTasks, setFilteredTasks] = useState<Task[] | []>(tasks)
   const [selectedType, setSelectedType] = useState('')
   const [timeTicker, setTimeTicker] = useState('')
-
+  const [isRefresh, setIsRefresh] = useState(false)
   //memo
   const statusesTabs = useMemo(() => {
     const match = userSettings.find((item) => item.key === 'statusesOnTabs')
@@ -269,6 +272,29 @@ export default function Tasks() {
     }, 1000)
   }
 
+  const onRefetchTask = () => {
+    try {
+      setIsRefresh(true)
+
+      const keys: string[][] = [
+        ['userSettings'],
+        ['taskTypes'],
+        ['taskList'],
+        ['taskStatuses'],
+        ['taskDetails'],
+        ['forms'],
+      ]
+
+      keys.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: key })
+      })
+    } catch (error) {
+      console.error('Failed to refetch tasks:', error)
+    } finally {
+      setIsRefresh(false)
+    }
+  }
+
   //mount unmount
   useEffect(() => {
     const interval = initTimeTicker()
@@ -295,9 +321,9 @@ export default function Tasks() {
 
   return (
     <ParallaxView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#FFF', dark: '#FFF' }}
       headerContent={
-        <>
+        <View className="border-b-2 border-b-gray-100">
           <TaskHeaderContent
             timeNow={timeTicker}
             matchLogo={matchLogo}
@@ -319,13 +345,15 @@ export default function Tasks() {
               activeTab={activeTab}
             />
           </View>
-        </>
+        </View>
       }
     >
       <TaskList
         tasks={tasksToDisplay}
         dateSeparator={dateSeparator}
         forEscalate={activeTab}
+        onRefetchTask={onRefetchTask}
+        isRefresh={isRefresh}
       />
     </ParallaxView>
   )

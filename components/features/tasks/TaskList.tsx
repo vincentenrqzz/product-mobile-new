@@ -1,6 +1,7 @@
 import countTasksForDay from '@/lib/countTaskForDay'
 import toIsraelTime from '@/lib/toIsraelTime'
 import useTaskStore, { Task } from '@/store/tasks'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
 import React, { useMemo } from 'react'
 import { FlatList, Text, View } from 'react-native'
 import TaskItem from './TaskItem'
@@ -9,9 +10,17 @@ interface Props {
   tasks: Task[]
   dateSeparator: boolean
   forEscalate: string
+  onRefetchTask: () => void
+  isRefresh: boolean
 }
 
-const TaskList = ({ tasks, dateSeparator, forEscalate }: Props) => {
+const TaskList = ({
+  tasks,
+  dateSeparator,
+  forEscalate,
+  onRefetchTask,
+  isRefresh,
+}: Props) => {
   //store
   const { taskStatuses } = useTaskStore()
 
@@ -88,6 +97,24 @@ const TaskList = ({ tasks, dateSeparator, forEscalate }: Props) => {
       </>
     )
   }
+
+  const renderEmptyComponent = () => {
+    return (
+      <View className="flex-1 items-center justify-center gap-4">
+        <MaterialCommunityIcons
+          name="clipboard-text-multiple-outline"
+          size={80}
+        />
+
+        <View className=" items-center justify-center gap-2">
+          <Text className="text-lg font-bold">No Task yet.</Text>
+          <Text className="text-center text-lg font-semibold">
+            You’re all caught up. Add your first task to get started.
+          </Text>
+        </View>
+      </View>
+    )
+  }
   return (
     <FlatList
       showsVerticalScrollIndicator={false}
@@ -99,6 +126,9 @@ const TaskList = ({ tasks, dateSeparator, forEscalate }: Props) => {
       maxToRenderPerBatch={5}
       windowSize={10}
       removeClippedSubviews={true}
+      ListEmptyComponent={renderEmptyComponent}
+      onRefresh={onRefetchTask}
+      refreshing={isRefresh}
     />
   )
 }

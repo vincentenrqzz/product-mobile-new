@@ -25,14 +25,23 @@ export default async () => {
 
   // upload the  batch images
   const batchPromises = batch.map(async (item) => {
+    NotificationService.showBackgroundNotificationByTask({
+      taskId: item.taskId,
+    })
     const result = await uploadImageWithRetry(0, 0, item)
     console.log('result batchPromises', result)
     if (!result) {
       const errorMessage = result?.error || 'Upload failed'
-
+      // NotificationService.sendUploadFailedNotification({
+      //   taskId: item.taskId,
+      //   desc: errorMessage,
+      // })
       throw new Error(errorMessage)
     }
     if (result && !result?.error) {
+      // NotificationService.sendCompletedUploadPendingTaskNotification({
+      //   taskId: item.taskId,
+      // })
       successImages.push(item)
       return item
     } else {
@@ -58,7 +67,7 @@ export default async () => {
   console.log('allFailed', allFailed)
   if (allFailed) {
     const message = {}
-    await NotificationService.sendUploadFailedNotification()
+    // await NotificationService.sendUploadFailedNotification()
   }
   return successImages
 }
