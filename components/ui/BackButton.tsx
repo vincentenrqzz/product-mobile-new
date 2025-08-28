@@ -8,7 +8,7 @@ const BackButton = ({ title = '' }) => {
   const router = useRouter()
   return (
     <TouchableOpacity
-      className="flex-row items-center gap-4"
+      className="flex-row items-center gap-4 bg-white"
       onPress={() => {
         router.back()
       }}

@@ -47,16 +47,10 @@ export const submitResetPassword = async (
 export const submitChangePassword = async (
   params: ChangePasswordInput,
 ): Promise<any> => {
-  const { token, ...rest } = params
-
+  console.log('params', params)
   const response: AxiosResponse<any> = await client.post(
     API.ENDPOINTS.USER.POST_CHANGE_PASSWORD,
-    rest,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    },
+    params,
   )
-  return response.data
+  return { success: true }
 }
