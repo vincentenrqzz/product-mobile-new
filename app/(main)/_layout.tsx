@@ -174,7 +174,6 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="task-detail" />
       <Stack.Screen name="task-info" />
-      <Stack.Screen name="task-form" />
     </Stack>
   )
 }

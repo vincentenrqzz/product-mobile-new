@@ -4,8 +4,9 @@ import { loginSchemas } from '@/schemas/loginSchemas'
 import { Ionicons } from '@expo/vector-icons'
 import { useFormik } from 'formik'
 import React, { useState } from 'react'
-import { ActivityIndicator, Pressable, Text, View } from 'react-native'
+import { ActivityIndicator, Pressable, Text, View, StyleSheet } from 'react-native'
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated'
+import { LinearGradient } from 'expo-linear-gradient'
 
 export interface InitialValues {
   customError?: string
@@ -22,6 +23,9 @@ const LoginForm = ({ onLoginPress, onForgotPasswordPress }: Props) => {
   const { colors, isDark } = useAppTheme()
   const [showPassword, setShowPassword] = useState(false)
 
+  // Gradient colors matching task-detail.tsx
+  const gradientColors = isDark ? ['#667EEA', '#764BA2'] : ['#4F46E5', '#7C3AED']
+
   const initialValues: InitialValues = {
     email: '',
     password: '',
@@ -33,128 +37,182 @@ const LoginForm = ({ onLoginPress, onForgotPasswordPress }: Props) => {
     validationSchema: loginSchemas,
   })
 
+  const isButtonDisabled = formik.isSubmitting || !formik.values.email || !formik.values.password
+
   return (
-    <Animated.View
-      entering={FadeIn.duration(700).delay(200)}
-      className="mt-20 rounded-xl p-6 shadow-lg"
-      style={{ backgroundColor: colors.cardBackground }}
-    >
-      <View style={{ gap: 24 }}>
-        {/* Email Input */}
-        <View style={{ gap: 8 }}>
-          <Text
-            className="text-md font-montserrat-regular"
-            style={{ color: colors.text }}
-          >
-            Email
-          </Text>
+    <View style={styles.container}>
+      {/* Email Input */}
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: isDark ? '#F9FAFB' : '#374151' }]}>
+          Email
+        </Text>
+        <FormInput
+          formik={formik}
+          name="email"
+          placeholder="Enter your email"
+          keyboardType="email-address"
+          leftElement={
+            <Ionicons 
+              name="mail" 
+              size={20} 
+              color={isDark ? '#9CA3AF' : '#6B7280'} 
+            />
+          }
+        />
+      </View>
 
-          <FormInput
-            formik={formik}
-            name="email"
-            placeholder="Enter your email"
-            keyboardType="email-address"
-            leftElement={
-              <Ionicons name="mail" size={20} color={colors.placeholderText} />
-            }
-          />
-        </View>
-
-        {/* Password Input */}
-        <View style={{ gap: 8 }}>
-          <Text
-            className="text-md font-montserrat-regular"
-            style={{ color: colors.text }}
-          >
-            Password
-          </Text>
-
-          <FormInput
-            formik={formik}
-            name="password"
-            placeholder="Enter your password"
-            placeholderTextColor={colors.placeholderText}
-            secureTextEntry={!showPassword}
-            leftElement={
+      {/* Password Input */}
+      <View style={styles.inputContainer}>
+        <Text style={[styles.label, { color: isDark ? '#F9FAFB' : '#374151' }]}>
+          Password
+        </Text>
+        <FormInput
+          formik={formik}
+          name="password"
+          placeholder="Enter your password"
+          secureTextEntry={!showPassword}
+          leftElement={
+            <Ionicons
+              name="lock-closed"
+              size={20}
+              color={isDark ? '#9CA3AF' : '#6B7280'}
+            />
+          }
+          rightElement={
+            <Pressable
+              onPress={() => setShowPassword(!showPassword)}
+              style={styles.eyeButton}
+            >
               <Ionicons
-                name="lock-closed"
+                name={showPassword ? 'eye-off' : 'eye'}
                 size={20}
-                color={colors.placeholderText}
+                color={isDark ? '#9CA3AF' : '#6B7280'}
               />
-            }
-            rightElement={
-              <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                className="p-2"
-              >
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color={colors.placeholderText}
-                />
-              </Pressable>
-            }
-          />
-        </View>
+            </Pressable>
+          }
+        />
+      </View>
 
-        {/* Error Message */}
-        {formik.errors.customError && (
-          <Animated.View
-            entering={FadeIn.duration(400)}
-            exiting={FadeOut.duration(300)}
-            className="flex-row items-center rounded-lg border border-red-200 bg-red-50 p-3"
-          >
-            <Ionicons name="warning" size={20} color="#dc2626" />
-            <Text className="ml-2 flex-1 text-sm text-red-600">
-              {formik.errors.customError || 'Login failed. Please try again.'}
-            </Text>
-          </Animated.View>
-        )}
-
-        {/* Login Button */}
-        <Pressable
-          onPress={() => {
-            formik.handleSubmit()
-          }}
-          disabled={formik.isSubmitting}
-          className="rounded-lg p-4"
-          style={{
-            backgroundColor:
-              formik.isSubmitting ||
-              !formik.values.email ||
-              !formik.values.password
-                ? `${colors.buttons}80`
-                : colors.buttons,
-          }}
+      {/* Error Message */}
+      {formik.errors.customError && (
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          exiting={FadeOut.duration(300)}
+          style={[
+            styles.errorContainer,
+            {
+              backgroundColor: isDark ? 'rgba(239, 68, 68, 0.1)' : 'rgba(254, 242, 242, 1)',
+              borderColor: isDark ? 'rgba(239, 68, 68, 0.3)' : 'rgba(252, 165, 165, 1)',
+            }
+          ]}
         >
-          <View className="flex-row items-center justify-center">
+          <Ionicons name="warning" size={20} color="#DC2626" />
+          <Text style={styles.errorText}>
+            {formik.errors.customError || 'Login failed. Please try again.'}
+          </Text>
+        </Animated.View>
+      )}
+
+      {/* Login Button */}
+      <Pressable
+        onPress={() => formik.handleSubmit()}
+        disabled={isButtonDisabled}
+        style={[styles.loginButton, { opacity: isButtonDisabled ? 0.6 : 1 }]}
+      >
+        <LinearGradient
+          colors={isButtonDisabled ? ['#9CA3AF', '#6B7280'] : gradientColors}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.gradientButton}
+        >
+          <View style={styles.buttonContent}>
             {formik.isSubmitting ? (
-              <ActivityIndicator color="white" />
+              <ActivityIndicator size="small" color="white" />
             ) : (
               <Ionicons name="log-in" size={20} color="white" />
             )}
-            <Text className="ml-2 text-lg text-white">
-              {formik.isSubmitting ? 'Logging in...' : 'Login'}
+            <Text style={styles.buttonText}>
+              {formik.isSubmitting ? 'Signing in...' : 'Sign In'}
             </Text>
           </View>
-        </Pressable>
+        </LinearGradient>
+      </Pressable>
 
-        {/* Forgot Password Link */}
-        <Pressable
-          onPress={onForgotPasswordPress}
-          disabled={formik.isSubmitting}
-          className="items-end"
-        >
-          <Text
-            className="text-md text-center"
-            style={{ color: colors.buttons, opacity: 0.7 }}
-          >
-            Forgot Password?
-          </Text>
-        </Pressable>
-      </View>
-    </Animated.View>
+      {/* Forgot Password Link */}
+      <Pressable
+        onPress={onForgotPasswordPress}
+        disabled={formik.isSubmitting}
+        style={styles.forgotPasswordContainer}
+      >
+        <Text style={[styles.forgotPasswordText, { color: gradientColors[0] }]}>
+          Forgot Password?
+        </Text>
+      </Pressable>
+    </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 20,
+  },
+  inputContainer: {
+    gap: 6,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '500',
+    fontFamily: 'Montserrat-Medium',
+  },
+  eyeButton: {
+    padding: 6,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+  },
+  errorText: {
+    marginLeft: 8,
+    flex: 1,
+    fontSize: 13,
+    color: '#DC2626',
+    fontFamily: 'Montserrat-Regular',
+  },
+  loginButton: {
+    borderRadius: 8,
+    overflow: 'hidden',
+    alignSelf: 'center',
+    minWidth: 120,
+  },
+  gradientButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  buttonText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontFamily: 'Montserrat-Medium',
+  },
+  forgotPasswordContainer: {
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  forgotPasswordText: {
+    fontSize: 14,
+    fontWeight: '400',
+    fontFamily: 'Montserrat-Regular',
+    opacity: 0.7,
+  },
+})
 
 export default LoginForm

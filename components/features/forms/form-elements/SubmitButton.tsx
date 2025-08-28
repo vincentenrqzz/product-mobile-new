@@ -19,6 +19,14 @@ interface SubmitButtonProps extends TouchableOpacityProps {
   textStyle?: TextStyle
   leftIcon?: React.ReactNode
   rightIcon?: React.ReactNode
+  formik?: {
+    values: Record<string, any>
+    errors: Record<string, any>
+    touched: Record<string, any>
+    isValid: boolean
+    isSubmitting: boolean
+    handleSubmit: () => void
+  }
 }
 
 const SubmitButton: React.FC<SubmitButtonProps> = ({
@@ -32,9 +40,14 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   textStyle,
   leftIcon,
   rightIcon,
+  formik,
   ...props
 }) => {
-  const isDisabled = disabled || loading
+  // If Formik is available, use its state for loading and validation
+  const isFormikLoading = formik?.isSubmitting || false
+  const isFormikInvalid = formik ? !formik.isValid : false
+  const actualLoading = loading || isFormikLoading
+  const isDisabled = disabled || actualLoading || isFormikInvalid
 
   // Size configurations
   const sizeConfig = {
@@ -65,6 +78,8 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       flexDirection: 'row' as const,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
+      alignSelf: 'center' as const,
+      width: '50%',
       ...sizeConfig[size],
     }
 
@@ -103,7 +118,6 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
             backgroundColor: isDisabled ? '#9CA3AF' : '#241c4c',
             borderWidth: 1,
             borderColor: isDisabled ? '#D1D5DB' : '#241c4c',
-            alignSelf: 'center' as const, // Centers the button
             minWidth: 250, // Minimum width for better UX
           },
           text: {
@@ -132,14 +146,14 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       activeOpacity={isDisabled ? 1 : 0.8}
       {...props}
     >
-      {leftIcon && !loading && (
+      {leftIcon && !actualLoading && (
         <React.Fragment>
           {leftIcon}
           <Text style={{ width: 8 }} />
         </React.Fragment>
       )}
 
-      {loading && (
+      {actualLoading && (
         <React.Fragment>
           <ActivityIndicator
             size="small"
@@ -151,7 +165,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
 
       <Text style={[styles.text, textStyle]}>{title}</Text>
 
-      {rightIcon && !loading && (
+      {rightIcon && !actualLoading && (
         <React.Fragment>
           <Text style={{ width: 8 }} />
           {rightIcon}

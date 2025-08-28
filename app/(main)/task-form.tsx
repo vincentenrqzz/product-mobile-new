@@ -1,622 +1,488 @@
-import AttachFile from '@/components/features/forms/form-elements/AttachFile'
-import CheckboxGroup from '@/components/features/forms/form-elements/CheckboxGroup'
-import DatePickerButton from '@/components/features/forms/form-elements/DatePickerButton'
-import CustomDateTimePicker from '@/components/features/forms/form-elements/DateTimePicker'
-import Dropdown from '@/components/features/forms/form-elements/Dropdown'
-import Markup from '@/components/features/forms/form-elements/Markup'
-import PrinterButton from '@/components/features/forms/form-elements/PrinterButton'
-import RadioGroup from '@/components/features/forms/form-elements/RadioGroup'
-import Signature from '@/components/features/forms/form-elements/Signature'
-import SingleText from '@/components/features/forms/form-elements/SingleText'
-import SubmitButton from '@/components/features/forms/form-elements/SubmitButton'
-import Survey from '@/components/features/forms/form-elements/Survey'
-import TakePictureButton from '@/components/features/forms/form-elements/TakePictureButton'
-import TextForm from '@/components/features/forms/form-elements/TextForm'
-import ParallaxScrollView from '@/components/ParallaxScrollView'
 import BackButton from '@/components/ui/BackButton'
 import { Task } from '@/store/tasks'
-import { useLocalSearchParams, useRouter } from 'expo-router'
-import React, { useEffect, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { isValidDate } from '@/lib/safeDate'
+import DynamicFormField from '@/components/features/forms/DynamicFormField'
+import { FormFieldTypes } from '@/types/form'
+import { useLocalSearchParams, useRouter, Tabs } from 'expo-router'
+import React, { useState, useEffect } from 'react'
+import { 
+  StyleSheet, 
+  Text, 
+  View, 
+  useColorScheme,
+  ScrollView,
+  Pressable,
+  useWindowDimensions
+} from 'react-native'
+import { Formik } from 'formik'
+import * as Yup from 'yup'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { MaterialIcons, Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
+import { BlurView } from 'expo-blur'
+
+type IconName = keyof typeof Ionicons.glyphMap
+
+interface TabItemProps {
+  routeName: string
+  isFocused: boolean
+  onPress: () => void
+  isDark: boolean
+}
+
+const CustomTabBar: React.FC = () => {
+  const router = useRouter()
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+  const insets = useSafeAreaInsets()
+  const [activeTab, setActiveTab] = useState('task-form')
+
+  const tabs = [
+    { name: 'settings', route: '/(main)/(tabs)/settings' },
+    { name: 'tasks', route: '/(main)/(tabs)/tasks' },
+    { name: 'home', route: '/(main)/(tabs)/home' },
+  ]
+
+  const handleTabPress = (tabName: string, route: string) => {
+    setActiveTab(tabName)
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    router.push(route as any)
+  }
+
+  return (
+    <View
+      style={[
+        styles.tabBarContainer,
+        { paddingBottom: insets.bottom + 16 }
+      ]}
+    >
+      <View style={styles.tabBar}>
+        <BlurView
+          intensity={25}
+          tint={isDark ? 'dark' : 'light'}
+          style={styles.tabBarBlur}
+        />
+        <View style={[styles.tabBarContent, isDark ? { backgroundColor: 'rgb(17, 24, 39)' } : { backgroundColor: 'rgb(255, 255, 255)' }]}>
+          {tabs.map((tab) => (
+            <TabItem
+              key={tab.name}
+              routeName={tab.name}
+              isFocused={activeTab === tab.name}
+              onPress={() => handleTabPress(tab.name, tab.route)}
+              isDark={isDark}
+            />
+          ))}
+        </View>
+      </View>
+    </View>
+  )
+}
+
+const TabItem: React.FC<TabItemProps> = ({
+  routeName,
+  isFocused,
+  onPress,
+  isDark,
+}) => {
+  const scale = useSharedValue(1)
+  const opacity = useSharedValue(1)
+  const translateY = useSharedValue(0)
+
+  React.useEffect(() => {
+    scale.value = withSpring(isFocused ? 1.1 : 1, {
+      damping: 15,
+      stiffness: 300,
+    })
+    opacity.value = withTiming(1, {
+      duration: 200,
+    })
+    translateY.value = withSpring(isFocused ? -2 : 0, {
+      damping: 15,
+      stiffness: 300,
+    })
+  }, [isFocused])
+
+  const animatedStyles = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
+    opacity: opacity.value,
+  }))
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.9)
+  }
+
+  const handlePressOut = () => {
+    scale.value = withSpring(isFocused ? 1.1 : 1)
+  }
+
+  const getIconName = (): IconName => {
+    switch (routeName) {
+      case 'settings':
+        return isFocused ? 'settings' : 'settings-outline'
+      case 'tasks':
+        return 'menu'
+      case 'home':
+        return isFocused ? 'home' : 'home-outline'
+      default:
+        return 'help-circle-outline'
+    }
+  }
+
+  const iconColor = isFocused
+    ? isDark
+      ? '#667EEA'
+      : '#4F46E5'
+    : isDark
+      ? '#6B7280'
+      : '#9CA3AF'
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={styles.tabItem}
+    >
+      <Animated.View style={animatedStyles}>
+        <Ionicons name={getIconName()} size={24} color={iconColor} />
+      </Animated.View>
+    </Pressable>
+  )
+}
 
 const TaskForm = () => {
   // builtin
   const router = useRouter()
   const params = useLocalSearchParams()
   const { task, fromListItemTab, statusLabels } = params
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
 
-  // parse task param
-  console.log('parsedTask', task)
-  const parsedTask: Task = typeof task === 'string' && JSON.parse(task)
+  // parse task param - memoize to prevent infinite re-renders
+  const parsedTask: Task = React.useMemo(() => 
+    typeof task === 'string' ? JSON.parse(task) : task
+  , [task])
 
-  // Component mapping for dynamic form rendering
-  const componentMap = {
-    text: SingleText,
-    textarea: TextForm,
-    checkboxes: CheckboxGroup,
-    radios: RadioGroup,
-    dropdown: Dropdown,
-    datePicker: DatePickerButton,
-    dateTimePicker: CustomDateTimePicker,
-    cameraButton: TakePictureButton,
-    markup: Markup,
-    survey: Survey,
-    signature: Signature,
-    attachButton: AttachFile,
-    printButton: PrinterButton,
-    button: SubmitButton,
-  }
+  const insets = useSafeAreaInsets()
 
-  // Dynamic form fields based on task form data
-  const getFormFields = () => {
-    // Check if task has form data
-    if (parsedTask?.form && Array.isArray(parsedTask.form) && parsedTask.form.length > 0) {
-      return parsedTask.form.map((formField) => ({
-        type: mapInputTypeToComponentType(formField.inputType),
-        key: formField.key,
-        label: formField.label,
-        placeholder: formField.placeholder,
-        description: formField.description,
-        required: formField.rules?.required || false,
-        defaultValue: formField.defaultValue,
-        value: formField.value,
-        options: parseOptions(formField.options),
-        validation: formField.validation,
-        note: formField.note,
-        conditions: formField.conditions,
-        uniqueId: formField.uniqueId,
-        videoDurationLimit: formField.videoDurationLimit,
-        captureMode: formField.captureMode,
-        itemLimit: formField.itemLimit,
-        gallery: formField.gallery,
-      }))
-    }
-
-    // Fallback to default form if no form fields are defined
-    return [
-      {
-        type: 'text',
-        key: 'defaultInput',
-        label: 'Input',
-        placeholder: 'Enter value...',
-        required: false,
-      },
-      {
-        type: 'button',
-        key: 'submit',
-        label: 'Submit',
-        variant: 'primary',
-        size: 'small',
-      },
-    ]
-  }
-
-  // Map inputType from form field to component type
-  const mapInputTypeToComponentType = (inputType: string): string => {
-    const typeMapping: Record<string, string> = {
-      // Text inputs
-      text: 'text',
-      textarea: 'textarea',
-      
-      // Date and time
-      dateTimeRegister: 'dateTimePicker',
-      datePicker: 'datePicker',
-      dateTimePicker: 'dateTimePicker',
-      
-      // Selection inputs
-      dropdown: 'dropdown',
-      autocomplete: 'dropdown', // Use dropdown for autocomplete for now
-      radios: 'radios',
-      checkboxes: 'checkboxes',
-      
-      // Media and files
-      cameraButton: 'cameraButton',
-      attachButton: 'attachButton',
-      signature: 'signature',
-      
-      // Interactive elements
-      survey: 'survey',
-      button: 'button',
-      printButton: 'printButton',
-      
-      // Display elements
-      markup: 'markup',
-      
-      // Geo and assignment (for future implementation)
-      geo: 'markup', // Fallback to markup for now
-      assigned: 'markup', // Fallback to markup for now
-      droppableAccordion: 'markup', // Fallback to markup for now
-    }
-
-    return typeMapping[inputType] || 'text' // Default to text input
-  }
-
-  // Parse options from form field options
-  const parseOptions = (options: any): any[] => {
-    if (!options) return []
+  // Generate initial values for Formik
+  const getInitialValues = () => {
+    if (!parsedTask?.form) return {}
     
-    // If options is already an array of objects with id, label, value structure
-    if (Array.isArray(options)) {
-      return options.map((option, index) => ({
-        id: option.id || `option_${index}`,
-        label: option.label || option.name || option.text || String(option),
-        value: option.value || option.key || option.id || String(option),
-      }))
-    }
-    
-    // If options is an object, convert to array
-    if (typeof options === 'object') {
-      return Object.entries(options).map(([key, value], index) => ({
-        id: `option_${index}`,
-        label: String(value),
-        value: key,
-      }))
-    }
-    
-    return []
-  }
-
-  // Dynamic form values based on form configuration
-  const [formValues, setFormValues] = useState<Record<string, any>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Get current task form fields
-  const currentFormFields = getFormFields()
-
-  // Initialize form values with defaults
-  useEffect(() => {
     const initialValues: Record<string, any> = {}
-    
-    currentFormFields.forEach((field) => {
-      // Set initial value from field's defaultValue or value property
-      const hasDefaultValue = 'defaultValue' in field && field.defaultValue !== undefined && field.defaultValue !== null && field.defaultValue !== ''
-      const hasValue = 'value' in field && field.value !== undefined && field.value !== null && field.value !== ''
-      
-      if (hasDefaultValue) {
-        // Handle date fields specially - convert strings to Date objects
-        if (field.type === 'dateTimePicker' && typeof field.defaultValue === 'string') {
-          const parsedDate = new Date(field.defaultValue)
-          initialValues[field.key] = isValidDate(parsedDate) ? parsedDate : undefined
-        } else {
-          initialValues[field.key] = field.defaultValue
-        }
-      } else if (hasValue) {
-        // Handle date fields specially - convert strings to Date objects
-        if (field.type === 'dateTimePicker' && typeof field.value === 'string') {
-          const parsedDate = new Date(field.value)
-          initialValues[field.key] = isValidDate(parsedDate) ? parsedDate : undefined
-        } else {
-          initialValues[field.key] = field.value
-        }
-      } else {
-        // Set appropriate default based on field type
-        switch (field.type) {
-          case 'checkboxes':
-            initialValues[field.key] = []
-            break
-          case 'radios':
-          case 'dropdown':
+    parsedTask.form
+      .filter(field => field.inputType !== 'geo')
+      .forEach(field => {
+        // Handle date/datetime fields specially to ensure proper type conversion
+        if (field.inputType === FormFieldTypes.DATE_TIME_REGISTER || 
+            field.inputType === FormFieldTypes.DATE_TIME_PICKER || 
+            field.inputType === FormFieldTypes.DATE_PICKER) {
+          const dateValue = field.value || field.defaultValue
+          if (dateValue) {
+            initialValues[field.key] = typeof dateValue === 'string' ? new Date(dateValue) : dateValue
+          } else {
             initialValues[field.key] = null
+          }
+        } else if (field.inputType === FormFieldTypes.CHECKBOXES) {
+          initialValues[field.key] = field.value || field.defaultValue || []
+        } else {
+          initialValues[field.key] = field.value || field.defaultValue || ''
+        }
+      })
+    return initialValues
+  }
+
+  // Generate validation schema for Formik
+  const getValidationSchema = () => {
+    if (!parsedTask?.form) return Yup.object({})
+    
+    const schemaFields: Record<string, any> = {}
+    
+    parsedTask.form
+      .filter(field => field.inputType !== 'geo')
+      .forEach(field => {
+        let fieldSchema: any
+
+        // Base validation based on field type
+        switch (field.inputType) {
+          case FormFieldTypes.TEXT:
+          case FormFieldTypes.TEXTAREA:
+            fieldSchema = Yup.string()
             break
-          case 'dateTimePicker':
-            initialValues[field.key] = undefined // Let the component handle default
+          case FormFieldTypes.DATE_PICKER:
+          case FormFieldTypes.DATE_TIME_PICKER:
+          case FormFieldTypes.DATE_TIME_REGISTER:
+            fieldSchema = Yup.date().nullable()
+            break
+          case FormFieldTypes.CHECKBOXES:
+            fieldSchema = Yup.array()
+            break
+          case FormFieldTypes.RADIO:
+          case FormFieldTypes.DROPDOWN:
+          case FormFieldTypes.AUTOCOMPLETE:
+            fieldSchema = Yup.string()
             break
           default:
-            initialValues[field.key] = ''
+            fieldSchema = Yup.mixed()
         }
-      }
-    })
-    
-    setFormValues(initialValues)
-  }, [parsedTask])
 
-  // Dynamic form value updater with validation
-  const updateFormValue = (key: string, value: any) => {
-    setFormValues((prev) => ({
-      ...prev,
-      [key]: value,
-    }))
-
-    // Clear any existing error for this field when user starts typing
-    setFieldErrors((prev) => {
-      const newErrors = { ...prev }
-      delete newErrors[key]
-      return newErrors
-    })
-  }
-
-  // Field-level error state
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
-
-  const handleSubmit = async () => {
-    // Validate all fields
-    const newErrors: Record<string, string> = {}
-    
-    currentFormFields.forEach((field) => {
-      const value = formValues[field.key]
-      
-      // Check required fields
-      if (field.required) {
-        const isEmpty = !value || 
-          (Array.isArray(value) && value.length === 0) || 
-          (typeof value === 'string' && value.trim() === '')
-          
-        if (isEmpty) {
-          newErrors[field.key] = `${field.label} is required`
-        }
-      }
-      
-      // Additional validation for text fields
-      if (field.type === 'text' && value && field.validation) {
-        // Check min length
-        if (field.validation.minLength && value.length < field.validation.minLength) {
-          newErrors[field.key] = `${field.label} must be at least ${field.validation.minLength} characters`
-        }
-        
-        // Check max length
-        if (field.validation.maxLength && value.length > field.validation.maxLength) {
-          newErrors[field.key] = `${field.label} must be no more than ${field.validation.maxLength} characters`
-        }
-      }
-    })
-
-    // If there are validation errors, set them and stop submission
-    if (Object.keys(newErrors).length > 0) {
-      setFieldErrors(newErrors)
-      return
-    }
-
-    // Clear any existing errors
-    setFieldErrors({})
-
-    setIsSubmitting(true)
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-
-      // console.log('Form submitted:', formValues)
-      alert('Form submitted successfully!')
-
-      // Reset form
-      setFormValues({})
-    } catch (error) {
-      console.error('Submit error:', error)
-      alert('Failed to submit form. Please try again.')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  // Dynamic component renderer
-  const renderFormField = (field: any, index: number) => {
-    const Component = componentMap[field.type]
-    if (!Component) return null
-
-    const commonProps = {
-      key: field.key,
-      label: field.label,
-      error: fieldErrors[field.key] || field.error,
-      helperText: field.helperText || field.description || field.note,
-      required: field.required,
-    }
-
-    const fieldValue = formValues[field.key]
-
-    switch (field.type) {
-      case 'text':
-        return (
-          <Component
-            {...commonProps}
-            placeholder={field.placeholder || 'Enter text...'}
-            value={fieldValue || ''}
-            onChangeText={(value: string) => updateFormValue(field.key, value)}
-            multiline={false}
-            maxLength={field.validation?.maxLength}
-          />
-        )
-
-      case 'textarea':
-        return (
-          <Component
-            {...commonProps}
-            placeholder={field.placeholder || 'Enter detailed text...'}
-            value={fieldValue || ''}
-            onChangeText={(value: string) => updateFormValue(field.key, value)}
-            minHeight={field.minHeight || 100}
-            maxHeight={field.maxHeight || 200}
-            multiline={true}
-          />
-        )
-
-      case 'checkboxes':
-        return (
-          <Component
-            {...commonProps}
-            options={field.options}
-            selectedValues={fieldValue || []}
-            onSelectionChange={(value: string[]) =>
-              updateFormValue(field.key, value)
-            }
-          />
-        )
-
-      case 'radios':
-        return (
-          <Component
-            {...commonProps}
-            options={field.options}
-            selectedValue={fieldValue || null}
-            onSelectionChange={(value: string) =>
-              updateFormValue(field.key, value)
-            }
-          />
-        )
-
-      case 'dropdown':
-        return (
-          <Component
-            {...commonProps}
-            placeholder={field.placeholder}
-            options={field.options}
-            selectedValue={fieldValue || null}
-            onSelectionChange={(value: string) =>
-              updateFormValue(field.key, value)
-            }
-          />
-        )
-
-      case 'datePicker':
-        return (
-          <Component
-            {...commonProps}
-            placeholder={field.placeholder}
-            onDateSelect={(value: string) => updateFormValue(field.key, value)}
-          />
-        )
-
-      case 'dateTimePicker':
-        // Convert fieldValue to Date object if it's not already
-        let dateValue: Date | undefined = undefined
-        if (fieldValue) {
-          if (fieldValue instanceof Date && isValidDate(fieldValue)) {
-            dateValue = fieldValue
-          } else if (typeof fieldValue === 'string' || typeof fieldValue === 'number') {
-            const parsedDate = new Date(fieldValue)
-            dateValue = isValidDate(parsedDate) ? parsedDate : undefined
+        // Add required validation if specified in rules
+        if (field.rules?.required === true) {
+          if (field.inputType === FormFieldTypes.CHECKBOXES) {
+            fieldSchema = fieldSchema.min(1, `${field.label} is required`)
+          } else if (field.inputType === FormFieldTypes.DATE_PICKER || 
+                     field.inputType === FormFieldTypes.DATE_TIME_PICKER || 
+                     field.inputType === FormFieldTypes.DATE_TIME_REGISTER) {
+            fieldSchema = fieldSchema.required(`${field.label} is required`)
+          } else {
+            fieldSchema = fieldSchema.required(`${field.label} is required`)
           }
         }
-        return (
-          <Component
-            {...commonProps}
-            placeholder={field.placeholder}
-            value={dateValue}
-            onDateTimeChange={(value: Date) =>
-              updateFormValue(field.key, value)
-            }
-          />
-        )
 
-      case 'cameraButton':
-        return (
-          <Component
-            {...commonProps}
-            onMediaSelect={(value: any) => updateFormValue(field.key, value)}
-          />
-        )
+        schemaFields[field.key] = fieldSchema
+      })
+    
+    return Yup.object(schemaFields)
+  }
 
-      case 'markup':
-        return (
-          <Component
-            {...commonProps}
-            taskData={parsedTask}
-            currentFormValues={formValues}
-          />
-        )
+  const handleFormSubmit = (values: Record<string, any>) => {
+    console.log('Form submitted with values:', values)
+    
+    // Process field actions based on form values and field rules
+    if (parsedTask?.form) {
+      parsedTask.form.forEach(field => {
+        const fieldValue = values[field.key]
+        const actions = field.rules?.actions || []
+        
+        // Execute actions for fields that have values
+        if (fieldValue && actions.length > 0) {
+          actions.forEach(action => {
+            handleFieldAction(action, field, fieldValue, values)
+          })
+        }
+      })
+    }
+  }
 
-      case 'survey':
-        return (
-          <Component
-            {...commonProps}
-            onRatingSelect={(value: number) =>
-              updateFormValue(field.key, value)
-            }
-            selectedRating={fieldValue}
-            stepsNumber={field.stepsNumber}
-            preWord={field.preWord}
-            postWord={field.postWord}
-          />
-        )
-
-      case 'signature':
-        return (
-          <Component
-            {...commonProps}
-            onSignatureCapture={(value: string) =>
-              updateFormValue(field.key, value)
-            }
-            value={fieldValue}
-          />
-        )
-
-      case 'attachButton':
-        return (
-          <Component
-            {...commonProps}
-            onFileSelect={(value: any) => updateFormValue(field.key, value)}
-            selectedFiles={fieldValue || []}
-            maxFileSize={field.maxFileSize}
-          />
-        )
-
-      case 'printButton':
-        return (
-          <Component
-            {...commonProps}
-            title={field.label}
-            onPress={() => alert(`${field.label} pressed!`)}
-            variant={field.variant}
-            size={field.size}
-            containerStyle={{ marginBottom: 16 }}
-          />
-        )
-
-      case 'button':
-        return (
-          <Component
-            {...commonProps}
-            title={field.label}
-            onPress={
-              field.key === 'submit'
-                ? handleSubmit
-                : () => alert(`${field.label} pressed!`)
-            }
-            variant={field.variant}
-            size={field.size}
-            loading={field.key === 'submit' ? isSubmitting : false}
-            containerStyle={{ marginBottom: 16 }}
-          />
-        )
-
+  const handleFieldAction = (action: string, field: any, fieldValue: any, allValues: Record<string, any>) => {
+    console.log(`Executing action: ${action} for field: ${field.key}`)
+    
+    switch (action) {
+      case 'startTask':
+        // Handle task start logic
+        console.log('Starting task...')
+        break
+      
+      case 'transmitDone':
+        // Handle form completion/submission
+        console.log('Transmitting form completion...')
+        // You can add your final submission logic here
+        break
+      
       default:
-        return null
+        console.log(`Unknown action: ${action}`)
     }
   }
 
   return (
-    <ParallaxScrollView>
-      <BackButton title={`${parsedTask.taskType} ${parsedTask.taskId}`} />
-      <View style={{ marginTop: 20 }}>
-        {/* Debug Info - Show form fields */}
-        {currentFormFields.length === 0 && (
-          <View
-            style={{
-              padding: 16,
-              backgroundColor: '#FEF3C7',
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: '#F59E0B',
-              marginBottom: 16,
-            }}
-          >
-            <Text style={{ fontSize: 14, color: '#92400E', fontWeight: '600' }}>
-              No Form Fields Found
-            </Text>
-            <Text style={{ fontSize: 12, color: '#92400E', marginTop: 4 }}>
-              Task: {parsedTask.taskType} (ID: {parsedTask.taskId})
-            </Text>
-            <Text style={{ fontSize: 12, color: '#92400E', marginTop: 2 }}>
-              Form data available: {parsedTask?.form ? 'Yes' : 'No'}
-            </Text>
-            {parsedTask?.form && (
-              <Text style={{ fontSize: 12, color: '#92400E', marginTop: 2 }}>
-                Form fields count: {parsedTask.form.length}
-              </Text>
-            )}
-          </View>
-        )}
+    <SafeAreaView style={[styles.container, isDark && styles.containerDark]}>
+      {/* Header */}
+      <View style={[styles.header, isDark && styles.headerDark]}>
+        <BackButton title={`${parsedTask.taskType} ${parsedTask.taskId}`} />
+      </View>
 
-        {/* Dynamic Form Rendering */}
-        {currentFormFields.map((field, index) => (
-          <View key={`${field.key}-${index}`} style={{ marginBottom: 0 }}>
-            {renderFormField(field, index)}
-          </View>
-        ))}
-
-        {/* Debug Display - Shows current form fields and values */}
-        {currentFormFields.length > 0 && (
-          <View
-            style={{
-              marginTop: 24,
-              padding: 16,
-              backgroundColor: '#F0F9FF',
-              borderRadius: 8,
-              borderWidth: 1,
-              borderColor: '#0EA5E9',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: '#0C4A6E',
-                marginBottom: 12,
-              }}
+      <Formik
+        initialValues={getInitialValues()}
+        validationSchema={getValidationSchema()}
+        onSubmit={handleFormSubmit}
+        enableReinitialize={true}
+      >
+        {({ values, errors, touched, handleChange, handleBlur, handleSubmit, setFieldValue }) => (
+          <>
+            {/* Content */}
+            <ScrollView 
+              style={styles.content}
+              contentContainerStyle={styles.contentContainer}
+              showsVerticalScrollIndicator={false}
             >
-              Debug Information
-            </Text>
-            
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: '600',
-                color: '#0C4A6E',
-                marginBottom: 8,
-              }}
-            >
-              Form Fields ({currentFormFields.length}):
-            </Text>
-            {currentFormFields.map((field, index) => (
-              <View key={index} style={{ marginBottom: 6, marginLeft: 8 }}>
-                <Text style={{ fontSize: 11, color: '#075985' }}>
-                  {index + 1}. {field.key} ({field.type}) - "{field.label}"
-                  {field.required && ' *'}
+              {/* Task Info Card */}
+              <View style={[styles.card, isDark && styles.cardDark]}>
+                <View style={styles.cardHeader}>
+                  <MaterialIcons 
+                    name="assignment" 
+                    size={24} 
+                    color={isDark ? '#60A5FA' : '#3B82F6'} 
+                  />
+                  <Text style={[styles.cardTitle, isDark && styles.textDark]}>
+                    Task Details
+                  </Text>
+                </View>
+                <Text style={[styles.taskId, isDark && styles.textSecondaryDark]}>
+                  Task ID: {parsedTask.taskId}
+                </Text>
+                <Text style={[styles.taskType, isDark && styles.textSecondaryDark]}>
+                  Type: {parsedTask.taskType}
                 </Text>
               </View>
-            ))}
 
-            {Object.keys(formValues).length > 0 && (
-              <>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: '#0C4A6E',
-                    marginTop: 16,
-                    marginBottom: 8,
-                  }}
-                >
-                  Form Values:
-                </Text>
-                {Object.entries(formValues).map(([key, value]) => (
-                  <View key={key} style={{ marginBottom: 6, marginLeft: 8 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '600', color: '#075985' }}>
-                      {key}:
-                    </Text>
-                    <Text style={{ fontSize: 11, color: '#0C4A6E', marginLeft: 12 }}>
-                      {Array.isArray(value)
-                        ? value.join(', ')
-                        : typeof value === 'object'
-                          ? JSON.stringify(value)
-                          : String(value)}
+              {/* Dynamic Form Fields */}
+              {parsedTask?.form && parsedTask.form.length > 0 && (
+                <View style={[styles.card, isDark && styles.cardDark]}>
+                  <View style={styles.cardHeader}>
+                    <MaterialIcons 
+                      name="dynamic-feed" 
+                      size={24} 
+                      color={isDark ? '#34D399' : '#10B981'} 
+                    />
+                    <Text style={[styles.cardTitle, isDark && styles.textDark]}>
+                      Form Fields
                     </Text>
                   </View>
-                ))}
-              </>
-            )}
-          </View>
+                  
+                  {parsedTask.form.filter(field => field.inputType !== 'geo').map((field, index) => (
+                    <View key={field.uniqueId || field.key || index} style={styles.formFieldContainer}>
+                      <DynamicFormField
+                        field={field}
+                        value={values[field.key]}
+                        onChange={(key: string, value: any) => setFieldValue(key, value)}
+                        error={touched[field.key] && errors[field.key] ? String(errors[field.key]) : undefined}
+                        task={parsedTask}
+                        formValues={values}
+                        formik={{
+                          values,
+                          errors,
+                          touched,
+                          handleChange,
+                          handleBlur,
+                          handleSubmit,
+                          setFieldValue
+                        }}
+                      />
+                    </View>
+                  ))}
+                </View>
+              )}
+
+            </ScrollView>
+          </>
         )}
-      </View>
-    </ParallaxScrollView>
+      </Formik>
+
+      {/* Bottom Tab Navigation */}
+      <CustomTabBar />
+    </SafeAreaView>
   )
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FAFC',
+  },
+  containerDark: {
+    backgroundColor: '#111827',
+  },
+  header: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+  },
+  headerDark: {
+    backgroundColor: '#1F2937',
+    borderBottomColor: '#374151',
+  },
+  content: {
+    flex: 1,
+  },
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 120, // Space for bottom navigation
+  },
+  formFieldContainer: {
+    marginBottom: 8,
+  },
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  buttonGroup: {
+  cardDark: {
+    backgroundColor: '#1F2937',
+    shadowColor: '#000',
+    shadowOpacity: 0.3,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginLeft: 8,
+    color: '#1F2937',
+  },
+  textDark: {
+    color: '#F9FAFB',
+  },
+  textSecondaryDark: {
+    color: '#D1D5DB',
+  },
+  taskId: {
+    fontSize: 14,
+    color: '#6B7280',
+    marginBottom: 4,
+  },
+  taskType: {
+    fontSize: 14,
+    color: '#6B7280',
+  },
+  // Bottom navigation styles
+  tabBarContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  tabBar: {
     marginHorizontal: 16,
+    marginBottom: 16,
+    borderRadius: 24,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
   },
-  image: {
-    marginTop: 20,
-    alignSelf: 'center',
-    width: 300,
-    height: 200,
-    borderRadius: 10,
+  tabBarBlur: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  tabBarContent: {
+    flexDirection: 'row',
+    height: 64,
+    paddingHorizontal: 8,
+  },
+  tabItem: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
 

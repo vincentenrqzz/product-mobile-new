@@ -57,7 +57,7 @@ const SimpleAnimatedTabBar: React.FC<BottomTabBarProps> = ({
       <View
         className={`
           mx-auto w-full max-w-sm overflow-hidden rounded-3xl px-2
-          ${isDark ? 'bg-gray-900/80' : 'bg-white'}
+          ${isDark ? 'bg-gray-900' : 'bg-white'}
         `}
         style={{
           shadowColor: '#000',
@@ -174,7 +174,7 @@ const TabItem: React.FC<TabItemProps> = ({
   isDark,
 }) => {
   const scale = useSharedValue(1)
-  const opacity = useSharedValue(isFocused ? 1 : 0.6)
+  const opacity = useSharedValue(1)
   const translateY = useSharedValue(0)
 
   React.useEffect(() => {
@@ -182,7 +182,7 @@ const TabItem: React.FC<TabItemProps> = ({
       damping: 15,
       stiffness: 300,
     })
-    opacity.value = withTiming(isFocused ? 1 : 0.6, {
+    opacity.value = withTiming(1, {
       duration: 200,
     })
     translateY.value = withSpring(isFocused ? -2 : 0, {
@@ -271,6 +271,13 @@ export default function TabLayout() {
         name="home"
         options={{
           title: 'Home',
+        }}
+      />
+      <Tabs.Screen
+        name="task-form"
+        options={{
+          title: 'Form',
+          href: null, // Hide from tab bar by default
         }}
       />
     </Tabs>

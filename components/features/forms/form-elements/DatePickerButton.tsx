@@ -75,19 +75,19 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
 
   // Calendar icon as text (you can replace with actual icon component)
   const CalendarIcon = () => (
-    <Text style={{ fontSize: 16, color: '#6B7280' }}>📅</Text>
+    <Text style={{ fontSize: 14, color: '#6B7280' }}>📅</Text>
   )
 
   return (
-    <View style={[{ marginBottom: 16 }, containerStyle]}>
+    <View style={[{ marginBottom: 12 }, containerStyle]}>
       {/* Label */}
       {label && (
         <Text
           style={{
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: '500',
             color: error ? '#EF4444' : '#374151',
-            marginBottom: 8,
+            marginBottom: 6,
           }}
         >
           {label}
@@ -101,19 +101,19 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
           flexDirection: 'row',
           alignItems: 'center',
           borderWidth: 1,
-          borderRadius: 8,
+          borderRadius: 6,
           backgroundColor: '#FFFFFF',
-          paddingHorizontal: 12,
-          paddingVertical: 12,
+          paddingHorizontal: 8,
+          paddingVertical: 8,
           borderColor: error ? '#FCA5A5' : '#D1D5DB',
-          minWidth: 250,
+          minWidth: 200,
           alignSelf: 'flex-start',
         }}
         onPress={handlePress}
         activeOpacity={0.7}
       >
         {/* Calendar icon */}
-        <View style={{ marginRight: 12 }}>
+        <View style={{ marginRight: 8 }}>
           <CalendarIcon />
         </View>
 
@@ -121,7 +121,7 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
         <Text
           style={{
             flex: 1,
-            fontSize: 14,
+            fontSize: 13,
             color: selectedDate ? '#111827' : '#9CA3AF',
           }}
         >
@@ -133,9 +133,9 @@ const DatePickerButton: React.FC<DatePickerButtonProps> = ({
       {(error || helperText) && (
         <Text
           style={{
-            fontSize: 11,
+            fontSize: 10,
             color: error ? '#EF4444' : '#6B7280',
-            marginTop: 6,
+            marginTop: 4,
           }}
         >
           {error || helperText}

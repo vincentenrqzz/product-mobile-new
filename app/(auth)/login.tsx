@@ -5,21 +5,34 @@ import { useLogin } from '@/queries/useAuth'
 import useAuthStore from '@/store/auth'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useRouter } from 'expo-router'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Keyboard,
   Pressable,
   Text,
   TouchableWithoutFeedback,
   View,
+  Image,
+  StyleSheet,
+  StatusBar,
+  Platform,
+  Dimensions,
+  Modal,
 } from 'react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown } from 'react-native-reanimated'
+import Animated, { FadeIn, FadeOut, SlideInDown, SlideInUp } from 'react-native-reanimated'
+import { Ionicons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import { BlurView } from 'expo-blur'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
 
 export default function login() {
   const { setEnvState, SetBaseUrl, envState } = useAuthStore()
   const { colors, isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   // const { pendingTasks } = useTaskStore()
   useEffect(() => {
     const loadEnvState = async () => {
@@ -87,90 +100,261 @@ export default function login() {
   const dismissKeyboard = () => {
     Keyboard.dismiss()
   }
+
+  // Gradient colors from task-detail.tsx
+  const gradientColors = isDark ? ['#667EEA', '#764BA2'] : ['#4F46E5', '#7C3AED']
+
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <View
-        className="flex-1 items-center justify-center p-4"
-        style={{ backgroundColor: colors.background }}
-      >
-        <Animated.View
-          entering={FadeIn.duration(600)}
-          exiting={FadeOut.duration(300)}
-          className="w-full max-w-[400px] gap-16"
-          // style={{ gap: 16 }}
-        >
-          {/* Logo/Title Section */}
-          <Animated.View
-            entering={SlideInDown.duration(800).springify()}
-            className="mb-6 items-center"
-          >
-            <Text
-              className="font-montserrat-bold text-4xl"
-              style={{ color: colors.text }}
-            >
-              Finito
-            </Text>
-            {/* {pendingTasks.map((pending) => {
-              return pending.images.map((image: string, index: any) => (
-                <Image
-                  key={index}
-                  source={{ uri: image }}
-                  style={{
-                    marginTop: 20,
-                    alignSelf: 'center',
-                    width: 300,
-                    height: 200,
-                    borderRadius: 10,
-                  }}
-                />
-              ))
-            })} */}
-            <Text
-              className="mt-2 text-center font-montserrat-regular"
-              style={{ color: colors.text, opacity: 0.8 }}
-            >
-              Welcome back! Please login to continue.
-            </Text>
-          </Animated.View>
+      <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F9FAFB' }]}>
+        {/* Status Bar */}
+        <StatusBar
+          barStyle={isDark ? 'light-content' : 'dark-content'}
+          backgroundColor="transparent"
+          translucent
+        />
 
-          <LoginForm
-            onLoginPress={onLoginPress}
-            onForgotPasswordPress={onForgotPasswordPress}
-          />
-
-          {/* Environment Selector (Optional) */}
+        <SafeAreaView style={styles.safeArea}>
+          {/* Environment Dropdown in top right (Dev Only) */}
           {__DEV__ && (
-            <Animated.View
-              entering={FadeIn.duration(500).delay(400)}
-              className="mt-4 flex-row justify-center opacity-70"
-              style={{ gap: 8 }}
-            >
-              {['DEV', 'STAGING', 'QA', 'PROD'].map((env) => (
-                <Pressable
-                  key={env}
-                  onPress={() => handleEnvSelection(env)}
-                  className={`rounded-md px-3 py-1`}
-                  style={{
-                    backgroundColor:
-                      envState === env ? colors.buttons : 'transparent',
-                    borderWidth: envState === env ? 0 : 1,
-                    borderColor: colors.inputBorder,
-                  }}
+            <View style={styles.topRightContainer}>
+              <Pressable
+                onPress={() => setIsDropdownOpen(true)}
+                style={[
+                  styles.envDropdownTrigger,
+                  {
+                    backgroundColor: isDark ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.9)',
+                    borderColor: isDark ? 'rgba(156, 163, 175, 0.3)' : 'rgba(209, 213, 219, 0.8)',
+                  }
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.envDropdownText,
+                    { color: isDark ? '#E5E7EB' : '#374151' }
+                  ]}
                 >
-                  <Text
-                    className="text-sm"
-                    style={{
-                      color: envState === env ? '#FFFFFF' : colors.text,
-                    }}
-                  >
-                    {env}
-                  </Text>
+                  {envState}
+                </Text>
+                <Ionicons 
+                  name="chevron-down" 
+                  size={16} 
+                  color={isDark ? '#9CA3AF' : '#6B7280'} 
+                />
+              </Pressable>
+
+              {/* Environment Selection Modal */}
+              <Modal
+                visible={isDropdownOpen}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setIsDropdownOpen(false)}
+              >
+                <Pressable
+                  style={styles.modalOverlay}
+                  onPress={() => setIsDropdownOpen(false)}
+                >
+                  <View style={styles.modalContent}>
+                    <View
+                      style={[
+                        styles.dropdownMenu,
+                        {
+                          backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
+                          borderColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(209, 213, 219, 0.8)',
+                        }
+                      ]}
+                    >
+                      {['DEV', 'STAGING', 'QA', 'PROD'].map((env, index) => (
+                        <Pressable
+                          key={env}
+                          onPress={() => {
+                            handleEnvSelection(env as 'DEV' | 'STAGING' | 'QA' | 'PROD')
+                            setIsDropdownOpen(false)
+                          }}
+                          style={[
+                            styles.dropdownItem,
+                            {
+                              backgroundColor: envState === env ? (isDark ? '#4F46E5' : '#EEF2FF') : 'transparent',
+                              borderBottomWidth: index < 3 ? 1 : 0,
+                              borderBottomColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(229, 231, 235, 0.8)',
+                            }
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.dropdownItemText,
+                              { 
+                                color: envState === env 
+                                  ? (isDark ? '#FFFFFF' : '#4F46E5')
+                                  : (isDark ? '#E5E7EB' : '#374151')
+                              }
+                            ]}
+                          >
+                            {env}
+                          </Text>
+                          {envState === env && (
+                            <Ionicons 
+                              name="checkmark" 
+                              size={16} 
+                              color={isDark ? '#FFFFFF' : '#4F46E5'} 
+                            />
+                          )}
+                        </Pressable>
+                      ))}
+                    </View>
+                  </View>
                 </Pressable>
-              ))}
-            </Animated.View>
+              </Modal>
+            </View>
           )}
-        </Animated.View>
+
+          {/* Simple centered content */}
+          <View style={styles.centerContainer}>
+            
+            {/* Simple Logo Display */}
+            <Animated.View
+              entering={FadeIn.duration(600)}
+              style={styles.logoSection}
+            >
+              <Image
+                source={require('@/assets/images/finito_logo.png')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </Animated.View>
+
+            {/* Login Form */}
+            <Animated.View
+              entering={SlideInUp.duration(600).delay(200)}
+              style={styles.formSection}
+            >
+              <LoginForm
+                onLoginPress={onLoginPress}
+                onForgotPasswordPress={onForgotPasswordPress}
+              />
+            </Animated.View>
+
+            {/* Version Display */}
+            <Animated.View
+              entering={FadeIn.duration(400).delay(400)}
+              style={styles.versionContainer}
+            >
+              <Text
+                style={[
+                  styles.versionText,
+                  { color: isDark ? '#9CA3AF' : '#6B7280' }
+                ]}
+              >
+                v1.9.90
+              </Text>
+            </Animated.View>
+
+          </View>
+        </SafeAreaView>
       </View>
     </TouchableWithoutFeedback>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  topRightContainer: {
+    position: 'absolute',
+    top: Platform.OS === 'ios' ? 20 : 30,
+    right: 20,
+    zIndex: 1000,
+  },
+  envDropdownTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 80,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  envDropdownText: {
+    fontSize: 12,
+    fontWeight: '500',
+    fontFamily: 'Montserrat-Medium',
+    marginRight: 6,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-start',
+    paddingTop: Platform.OS === 'ios' ? 80 : 90,
+    paddingRight: 20,
+  },
+  modalContent: {
+    alignItems: 'flex-end',
+  },
+  dropdownMenu: {
+    borderRadius: 8,
+    borderWidth: 1,
+    minWidth: 120,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  dropdownItemText: {
+    fontSize: 13,
+    fontWeight: '500',
+    fontFamily: 'Montserrat-Medium',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    maxWidth: 400,
+    alignSelf: 'center',
+    width: '100%',
+  },
+  logoSection: {
+    alignItems: 'center',
+    marginBottom: 64,
+  },
+  logo: {
+    width: 180,
+    height: 60,
+  },
+  formSection: {
+    marginBottom: 32,
+  },
+  versionContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  versionText: {
+    fontSize: 13,
+    fontWeight: '400',
+    fontFamily: 'Montserrat-Regular',
+    opacity: 0.7,
+  },
+})
