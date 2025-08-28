@@ -22,61 +22,43 @@ const BubbleBackground: React.FC<BubbleBackgroundProps> = ({
   // Colors from finito-loader.svg
   const circleColors = ['#f9b65d', '#544c9c', '#ec4c74']
 
-  // Static circles positioned at screen edges
+  // 4 strategically positioned bubbles
   const circles: Circle[] = [
-    // Top left corner - 50% visible
+    // Top right corner - BIG bubble, 50% visible (as requested)
     {
       id: 1,
-      x: -75, // Half outside screen
-      y: -75,
-      size: 150,
-      color: circleColors[0], // Orange
-      opacity: 1.0,
+      x: SCREEN_WIDTH - 80, // Half outside screen
+      y: -80,
+      size: 160,
+      color: circleColors[1], // Purple
+      opacity: 0.8,
     },
-    // Top right corner - 50% visible
+    // Bottom left corner - medium bubble, 50% visible
     {
       id: 2,
-      x: SCREEN_WIDTH - 75, // Half outside screen
-      y: -60,
-      size: 120,
-      color: circleColors[1], // Purple
-      opacity: 1.0,
+      x: -40,
+      y: SCREEN_HEIGHT - 60,
+      size: 80,
+      color: circleColors[2], // Pink
+      opacity: 0.7,
     },
-    // Bottom left edge - 50% visible
+    // Middle left edge - small bubble, 50% visible
     {
       id: 3,
-      x: -90,
-      y: SCREEN_HEIGHT - 120,
-      size: 180,
-      color: circleColors[2], // Pink
-      opacity: 1.0,
+      x: -25,
+      y: SCREEN_HEIGHT * 0.4,
+      size: 50,
+      color: circleColors[0], // Orange
+      opacity: 0.6,
     },
-    // Bottom right corner - 50% visible
+    // Bottom right corner - medium bubble, 50% visible
     {
       id: 4,
-      x: SCREEN_WIDTH - 65,
-      y: SCREEN_HEIGHT - 65,
-      size: 130,
+      x: SCREEN_WIDTH - 35,
+      y: SCREEN_HEIGHT - 45,
+      size: 70,
       color: circleColors[0], // Orange
-      opacity: 1.0,
-    },
-    // Middle right edge - 50% visible
-    {
-      id: 5,
-      x: SCREEN_WIDTH - 50,
-      y: SCREEN_HEIGHT * 0.3,
-      size: 100,
-      color: circleColors[1], // Purple
-      opacity: 1.0,
-    },
-    // Middle left edge - 50% visible
-    {
-      id: 6,
-      x: -70,
-      y: SCREEN_HEIGHT * 0.6,
-      size: 140,
-      color: circleColors[2], // Pink
-      opacity: 1.0,
+      opacity: 0.7,
     },
   ]
 
