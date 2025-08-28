@@ -1,35 +1,35 @@
 import LoginForm from '@/components/features/login/LoginForm'
+import BubbleBackground from '@/components/ui/BubbleBackground'
 import { BASE_URLS } from '@/constants/api'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { useLogin } from '@/queries/useAuth'
 import useAuthStore from '@/store/auth'
+import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { useEffect, useState } from 'react'
 import {
   Keyboard,
+  Modal,
+  Platform,
   Pressable,
+  StatusBar,
+  StyleSheet,
   Text,
   TouchableWithoutFeedback,
   View,
-  Image,
-  StyleSheet,
-  StatusBar,
-  Platform,
-  Dimensions,
-  Modal,
 } from 'react-native'
-import Animated, { FadeIn, FadeOut, SlideInDown, SlideInUp } from 'react-native-reanimated'
-import { Ionicons } from '@expo/vector-icons'
-import { LinearGradient } from 'expo-linear-gradient'
-import { BlurView } from 'expo-blur'
+import Animated, {
+  FadeIn,
+  SlideInDown,
+  SlideInUp,
+} from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window')
-
-export default function login() {
+export default function Login() {
   const { setEnvState, SetBaseUrl, envState } = useAuthStore()
-  const { colors, isDark } = useAppTheme()
+  const { isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -41,13 +41,13 @@ export default function login() {
         if (storedEnv) {
           setEnvState(storedEnv)
         }
-      } catch (error) {
-        // console.log('Error loading envState from AsyncStorage', error)
+      } catch {
+        // console.log('Error loading envState from AsyncStorage')
       }
     }
 
     loadEnvState()
-  }, [])
+  }, [setEnvState])
 
   const handleEnvSelection = async (env: 'DEV' | 'STAGING' | 'QA' | 'PROD') => {
     try {
@@ -65,8 +65,8 @@ export default function login() {
         SetBaseUrl(BASE_URLS.prod)
       }
       await AsyncStorage.setItem('envState', env)
-    } catch (error) {
-      // console.log('Error saving envState to AsyncStorage', error)
+    } catch {
+      // console.log('Error saving envState to AsyncStorage')
     }
   }
 
@@ -101,18 +101,23 @@ export default function login() {
     Keyboard.dismiss()
   }
 
-  // Gradient colors from task-detail.tsx
-  const gradientColors = isDark ? ['#667EEA', '#764BA2'] : ['#4F46E5', '#7C3AED']
-
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
-      <View style={[styles.container, { backgroundColor: isDark ? '#111827' : '#F9FAFB' }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? '#111827' : '#F9FAFB' },
+        ]}
+      >
         {/* Status Bar */}
         <StatusBar
           barStyle={isDark ? 'light-content' : 'dark-content'}
           backgroundColor="transparent"
           translucent
         />
+
+        {/* Animated Bubble Background */}
+        <BubbleBackground isDark={isDark} />
 
         <SafeAreaView style={styles.safeArea}>
           {/* Environment Dropdown in top right (Dev Only) */}
@@ -123,23 +128,27 @@ export default function login() {
                 style={[
                   styles.envDropdownTrigger,
                   {
-                    backgroundColor: isDark ? 'rgba(55, 65, 81, 0.8)' : 'rgba(255, 255, 255, 0.9)',
-                    borderColor: isDark ? 'rgba(156, 163, 175, 0.3)' : 'rgba(209, 213, 219, 0.8)',
-                  }
+                    backgroundColor: isDark
+                      ? 'rgba(55, 65, 81, 0.8)'
+                      : 'rgba(255, 255, 255, 0.9)',
+                    borderColor: isDark
+                      ? 'rgba(156, 163, 175, 0.3)'
+                      : 'rgba(209, 213, 219, 0.8)',
+                  },
                 ]}
               >
                 <Text
                   style={[
                     styles.envDropdownText,
-                    { color: isDark ? '#E5E7EB' : '#374151' }
+                    { color: isDark ? '#E5E7EB' : '#374151' },
                   ]}
                 >
                   {envState}
                 </Text>
-                <Ionicons 
-                  name="chevron-down" 
-                  size={16} 
-                  color={isDark ? '#9CA3AF' : '#6B7280'} 
+                <Ionicons
+                  name="chevron-down"
+                  size={16}
+                  color={isDark ? '#9CA3AF' : '#6B7280'}
                 />
               </Pressable>
 
@@ -160,43 +169,59 @@ export default function login() {
                         styles.dropdownMenu,
                         {
                           backgroundColor: isDark ? '#1F2937' : '#FFFFFF',
-                          borderColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(209, 213, 219, 0.8)',
-                        }
+                          borderColor: isDark
+                            ? 'rgba(156, 163, 175, 0.2)'
+                            : 'rgba(209, 213, 219, 0.8)',
+                        },
                       ]}
                     >
                       {['DEV', 'STAGING', 'QA', 'PROD'].map((env, index) => (
                         <Pressable
                           key={env}
                           onPress={() => {
-                            handleEnvSelection(env as 'DEV' | 'STAGING' | 'QA' | 'PROD')
+                            handleEnvSelection(
+                              env as 'DEV' | 'STAGING' | 'QA' | 'PROD',
+                            )
                             setIsDropdownOpen(false)
                           }}
                           style={[
                             styles.dropdownItem,
                             {
-                              backgroundColor: envState === env ? (isDark ? '#4F46E5' : '#EEF2FF') : 'transparent',
+                              backgroundColor:
+                                envState === env
+                                  ? isDark
+                                    ? '#4F46E5'
+                                    : '#EEF2FF'
+                                  : 'transparent',
                               borderBottomWidth: index < 3 ? 1 : 0,
-                              borderBottomColor: isDark ? 'rgba(156, 163, 175, 0.2)' : 'rgba(229, 231, 235, 0.8)',
-                            }
+                              borderBottomColor: isDark
+                                ? 'rgba(156, 163, 175, 0.2)'
+                                : 'rgba(229, 231, 235, 0.8)',
+                            },
                           ]}
                         >
                           <Text
                             style={[
                               styles.dropdownItemText,
-                              { 
-                                color: envState === env 
-                                  ? (isDark ? '#FFFFFF' : '#4F46E5')
-                                  : (isDark ? '#E5E7EB' : '#374151')
-                              }
+                              {
+                                color:
+                                  envState === env
+                                    ? isDark
+                                      ? '#FFFFFF'
+                                      : '#4F46E5'
+                                    : isDark
+                                      ? '#E5E7EB'
+                                      : '#374151',
+                              },
                             ]}
                           >
                             {env}
                           </Text>
                           {envState === env && (
-                            <Ionicons 
-                              name="checkmark" 
-                              size={16} 
-                              color={isDark ? '#FFFFFF' : '#4F46E5'} 
+                            <Ionicons
+                              name="checkmark"
+                              size={16}
+                              color={isDark ? '#FFFFFF' : '#4F46E5'}
                             />
                           )}
                         </Pressable>
@@ -210,10 +235,12 @@ export default function login() {
 
           {/* Simple centered content */}
           <View style={styles.centerContainer}>
-            
             {/* Simple Logo Display */}
             <Animated.View
-              entering={FadeIn.duration(600)}
+              entering={SlideInDown.duration(800)
+                .springify()
+                .damping(15)
+                .stiffness(100)}
               style={styles.logoSection}
             >
               <Image
@@ -242,13 +269,12 @@ export default function login() {
               <Text
                 style={[
                   styles.versionText,
-                  { color: isDark ? '#9CA3AF' : '#6B7280' }
+                  { color: isDark ? '#9CA3AF' : '#6B7280' },
                 ]}
               >
                 v1.9.90
               </Text>
             </Animated.View>
-
           </View>
         </SafeAreaView>
       </View>
@@ -265,7 +291,7 @@ const styles = StyleSheet.create({
   },
   topRightContainer: {
     position: 'absolute',
-    top: Platform.OS === 'ios' ? 20 : 30,
+    top: Platform.OS === 'ios' ? 100 : 110,
     right: 20,
     zIndex: 1000,
   },
@@ -296,7 +322,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-start',
-    paddingTop: Platform.OS === 'ios' ? 80 : 90,
+    paddingTop: Platform.OS === 'ios' ? 120 : 130,
     paddingRight: 20,
   },
   modalContent: {
@@ -341,8 +367,8 @@ const styles = StyleSheet.create({
     marginBottom: 64,
   },
   logo: {
-    width: 180,
-    height: 60,
+    width: 320,
+    height: 107,
   },
   formSection: {
     marginBottom: 32,

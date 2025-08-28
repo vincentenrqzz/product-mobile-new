@@ -64,12 +64,12 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
         newMedia.uri.split('/').pop() || `${newMedia.type}_${Date.now()}`
       addPendingImages({
         taskId: task.taskId,
-        name: filename,
+        name: `task/${task.taskId}/${filename}`,
         filePath: newMedia.uri,
       })
       console.log('📸 Added image to pending images:', {
         taskId: task.taskId,
-        name: filename,
+        name: `task/${task.taskId}/${filename}`,
         filePath: newMedia.uri,
       })
     }
@@ -153,12 +153,12 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
             item.uri.split('/').pop() || `${item.type}_${Date.now()}`
           addPendingImages({
             taskId: task.taskId,
-            name: filename,
+            name: `task/${task.taskId}/${filename}`,
             filePath: item.uri,
           })
           console.log('📸 Added gallery image to pending images:', {
             taskId: task.taskId,
-            name: filename,
+            name: `task/${task.taskId}/${filename}`,
             filePath: item.uri,
           })
         })
@@ -199,12 +199,12 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
             item.uri.split('/').pop() || `${item.type}_${Date.now()}`
           addPendingImages({
             taskId: task.taskId,
-            name: filename,
+            name: `task/${task.taskId}/${filename}`,
             filePath: item.uri,
           })
           console.log('🎥 Added gallery video to pending images:', {
             taskId: task.taskId,
-            name: filename,
+            name: `task/${task.taskId}/${filename}`,
             filePath: item.uri,
           })
         })
