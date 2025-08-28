@@ -16,7 +16,7 @@ import {
 import Animated, { FadeIn, FadeOut, SlideInDown } from 'react-native-reanimated'
 
 export default function login() {
-  const { setEnvState, SetBaseUrl, envState } = useAuthStore()
+  const { setEnvState, SetBaseUrl, envState, setAuthState } = useAuthStore()
   const { colors, isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
@@ -64,9 +64,26 @@ export default function login() {
         password: values.password,
       })
       .then((data) => {
-        setTimeout(() => {
-          router.replace('/(main)/(tabs)/home')
-        }, 100)
+        console.log('data', data)
+        if (data?.enableOtp) {
+          const { userSub, tenantName, resendSeconds } = data
+          router.push({
+            pathname: '/(auth)/otp-verification',
+            params: {
+              userSub,
+              tenantName,
+              resendSeconds: 190,
+              email: values.email,
+              password: values.password,
+            },
+          })
+        } else {
+          const { IdToken, ExpiresIn } = data.AuthenticationResult
+          setAuthState(true, IdToken)
+          setTimeout(() => {
+            router.replace('/(main)/(tabs)/home')
+          }, 100)
+        }
       })
       .catch((error) => {
         console.log('error', error)
@@ -145,7 +162,7 @@ export default function login() {
               className="mt-4 flex-row justify-center opacity-70"
               style={{ gap: 8 }}
             >
-              {['DEV', 'STAGING', 'QA', 'PROD'].map((env) => (
+              {['DEV', 'STAGING', 'QA', 'PROD'].map((env: any) => (
                 <Pressable
                   key={env}
                   onPress={() => handleEnvSelection(env)}

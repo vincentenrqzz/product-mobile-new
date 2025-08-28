@@ -27,7 +27,6 @@ export default function AppLayout() {
     isLoading: userIsLoading,
     isError: userIsError,
   } = useGetUser()
-
   // Only run queries if userInfo is not already loaded
   //!userInfo &&
   const queryResults = useQueries({
