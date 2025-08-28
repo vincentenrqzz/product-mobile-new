@@ -25,7 +25,7 @@ export type EnvKey = keyof typeof BASE_URLS
 export type BaseGroup = (typeof BASE_URLS)[EnvKey]
 
 export const API = {
-  BASE_URL: BASE_URLS.dev,
+  BASE_URL: BASE_URLS.qa,
   ENDPOINTS: {
     USER: {
       POST: 'auth/login',

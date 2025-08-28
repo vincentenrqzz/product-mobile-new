@@ -170,6 +170,10 @@ interface AuthState {
   addPendingImages: (image: any) => void
   popNextTask: () => any | undefined
   clearAll: () => void // Added clearAll method to reset the store state and clear AsyncStorage
+  updateTaskFormValues: (
+    taskId: number,
+    formValues: Record<string, any>,
+  ) => void
 }
 
 const IMAGE_URI =
@@ -277,6 +281,37 @@ const useTaskStore = create<AuthState>()(
             pendingImages: [],
             tasks: [],
             successTaskIds: [],
+          })
+        },
+        updateTaskFormValues: (
+          taskId: number,
+          formValues: Record<string, any>,
+        ) => {
+          set((state) => {
+            const updatedTasks = state.tasks.map((task) => {
+              if (task.taskId === taskId) {
+                // Update form field values
+                const updatedForm =
+                  task.form?.map((field) => {
+                    if (formValues.hasOwnProperty(field.key)) {
+                      return {
+                        ...field,
+                        value: formValues[field.key],
+                      }
+                    }
+                    return field
+                  }) || []
+
+                return {
+                  ...task,
+                  form: updatedForm,
+                  lastUpdatedAt: new Date().toISOString(),
+                }
+              }
+              return task
+            })
+
+            return { tasks: updatedTasks }
           })
         },
       }),

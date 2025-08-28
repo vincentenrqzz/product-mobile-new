@@ -1,7 +1,7 @@
 import { API } from '@/constants/api'
 import useUserInfoStore from '@/store/userInfo'
 import { FileData, FileUploadResponse } from '@/types/file'
-import { AxiosProgressEvent, AxiosResponse } from 'axios'
+import axios, { AxiosProgressEvent, AxiosResponse } from 'axios'
 import { client } from '../client'
 import { fileClient } from '../fileClient'
 
@@ -11,6 +11,7 @@ export const uploadFile = async (
   signal?: AbortSignal,
   onProgress?: (percent: number) => void,
 ): Promise<FileUploadResponse> => {
+  console.log('taskIdAndFilePath', taskIdAndFilePath)
   const formData = new FormData()
   formData.append('destination', taskIdAndFilePath)
   formData.append('image', fileData as any)
@@ -74,8 +75,6 @@ export const getImageFromAmazon = async (
     return {}
   }
 }
-
-import axios from 'axios'
 
 export const getVideoFromAmazon = async (
   taskId: number,

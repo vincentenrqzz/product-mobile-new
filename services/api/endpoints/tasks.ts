@@ -76,6 +76,7 @@ export const changeTaskStatus = async (
     return null
   }
 
+  console.log('TASK RESPO', response)
   return response
 }
 

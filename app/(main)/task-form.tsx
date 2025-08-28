@@ -1,30 +1,29 @@
-import BackButton from '@/components/ui/BackButton'
-import { Task } from '@/store/tasks'
 import DynamicFormField from '@/components/features/forms/DynamicFormField'
+import BackButton from '@/components/ui/BackButton'
+import useTaskStore, { Task } from '@/store/tasks'
 import { FormFieldTypes } from '@/types/form'
-import { useLocalSearchParams, useRouter, Tabs } from 'expo-router'
-import React, { useState, useEffect } from 'react'
-import { 
-  StyleSheet, 
-  Text, 
-  View, 
-  useColorScheme,
-  ScrollView,
-  Pressable,
-  useWindowDimensions
-} from 'react-native'
-import { Formik } from 'formik'
-import * as Yup from 'yup'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { MaterialIcons, Ionicons } from '@expo/vector-icons'
+import { Ionicons, MaterialIcons } from '@expo/vector-icons'
+import { BlurView } from 'expo-blur'
 import * as Haptics from 'expo-haptics'
+import { useLocalSearchParams, useRouter } from 'expo-router'
+import { Formik } from 'formik'
+import React, { useState } from 'react'
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+} from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
   withTiming,
 } from 'react-native-reanimated'
-import { BlurView } from 'expo-blur'
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import * as Yup from 'yup'
 
 type IconName = keyof typeof Ionicons.glyphMap
 
@@ -56,10 +55,7 @@ const CustomTabBar: React.FC = () => {
 
   return (
     <View
-      style={[
-        styles.tabBarContainer,
-        { paddingBottom: insets.bottom + 16 }
-      ]}
+      style={[styles.tabBarContainer, { paddingBottom: insets.bottom + 16 }]}
     >
       <View style={styles.tabBar}>
         <BlurView
@@ -67,7 +63,14 @@ const CustomTabBar: React.FC = () => {
           tint={isDark ? 'dark' : 'light'}
           style={styles.tabBarBlur}
         />
-        <View style={[styles.tabBarContent, isDark ? { backgroundColor: 'rgb(17, 24, 39)' } : { backgroundColor: 'rgb(255, 255, 255)' }]}>
+        <View
+          style={[
+            styles.tabBarContent,
+            isDark
+              ? { backgroundColor: 'rgb(17, 24, 39)' }
+              : { backgroundColor: 'rgb(255, 255, 255)' },
+          ]}
+        >
           {tabs.map((tab) => (
             <TabItem
               key={tab.name}
@@ -163,28 +166,35 @@ const TaskForm = () => {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
 
+  // store
+  const { updateTaskFormValues } = useTaskStore()
+
   // parse task param - memoize to prevent infinite re-renders
-  const parsedTask: Task = React.useMemo(() => 
-    typeof task === 'string' ? JSON.parse(task) : task
-  , [task])
+  const parsedTask: Task = React.useMemo(
+    () => (typeof task === 'string' ? JSON.parse(task) : task),
+    [task],
+  )
 
   const insets = useSafeAreaInsets()
 
   // Generate initial values for Formik
   const getInitialValues = () => {
     if (!parsedTask?.form) return {}
-    
+
     const initialValues: Record<string, any> = {}
     parsedTask.form
-      .filter(field => field.inputType !== 'geo')
-      .forEach(field => {
+      .filter((field) => field.inputType !== 'geo')
+      .forEach((field) => {
         // Handle date/datetime fields specially to ensure proper type conversion
-        if (field.inputType === FormFieldTypes.DATE_TIME_REGISTER || 
-            field.inputType === FormFieldTypes.DATE_TIME_PICKER || 
-            field.inputType === FormFieldTypes.DATE_PICKER) {
+        if (
+          field.inputType === FormFieldTypes.DATE_TIME_REGISTER ||
+          field.inputType === FormFieldTypes.DATE_TIME_PICKER ||
+          field.inputType === FormFieldTypes.DATE_PICKER
+        ) {
           const dateValue = field.value || field.defaultValue
           if (dateValue) {
-            initialValues[field.key] = typeof dateValue === 'string' ? new Date(dateValue) : dateValue
+            initialValues[field.key] =
+              typeof dateValue === 'string' ? new Date(dateValue) : dateValue
           } else {
             initialValues[field.key] = null
           }
@@ -200,12 +210,12 @@ const TaskForm = () => {
   // Generate validation schema for Formik
   const getValidationSchema = () => {
     if (!parsedTask?.form) return Yup.object({})
-    
+
     const schemaFields: Record<string, any> = {}
-    
+
     parsedTask.form
-      .filter(field => field.inputType !== 'geo')
-      .forEach(field => {
+      .filter((field) => field.inputType !== 'geo')
+      .forEach((field) => {
         let fieldSchema: any
 
         // Base validation based on field type
@@ -235,9 +245,11 @@ const TaskForm = () => {
         if (field.rules?.required === true) {
           if (field.inputType === FormFieldTypes.CHECKBOXES) {
             fieldSchema = fieldSchema.min(1, `${field.label} is required`)
-          } else if (field.inputType === FormFieldTypes.DATE_PICKER || 
-                     field.inputType === FormFieldTypes.DATE_TIME_PICKER || 
-                     field.inputType === FormFieldTypes.DATE_TIME_REGISTER) {
+          } else if (
+            field.inputType === FormFieldTypes.DATE_PICKER ||
+            field.inputType === FormFieldTypes.DATE_TIME_PICKER ||
+            field.inputType === FormFieldTypes.DATE_TIME_REGISTER
+          ) {
             fieldSchema = fieldSchema.required(`${field.label} is required`)
           } else {
             fieldSchema = fieldSchema.required(`${field.label} is required`)
@@ -246,22 +258,27 @@ const TaskForm = () => {
 
         schemaFields[field.key] = fieldSchema
       })
-    
+
     return Yup.object(schemaFields)
   }
 
   const handleFormSubmit = (values: Record<string, any>) => {
-    console.log('Form submitted with values:', values)
-    
+    console.log('🚀 Form submitted with values:', values)
+    console.log('📋 Task ID:', parsedTask.taskId)
+
+    // Update task form values in the store
+    updateTaskFormValues(parsedTask.taskId, values)
+    console.log('✅ Task form values updated in store')
+
     // Process field actions based on form values and field rules
     if (parsedTask?.form) {
-      parsedTask.form.forEach(field => {
+      parsedTask.form.forEach((field) => {
         const fieldValue = values[field.key]
         const actions = field.rules?.actions || []
-        
+
         // Execute actions for fields that have values
         if (fieldValue && actions.length > 0) {
-          actions.forEach(action => {
+          actions.forEach((action) => {
             handleFieldAction(action, field, fieldValue, values)
           })
         }
@@ -269,21 +286,26 @@ const TaskForm = () => {
     }
   }
 
-  const handleFieldAction = (action: string, field: any, fieldValue: any, allValues: Record<string, any>) => {
+  const handleFieldAction = (
+    action: string,
+    field: any,
+    fieldValue: any,
+    allValues: Record<string, any>,
+  ) => {
     console.log(`Executing action: ${action} for field: ${field.key}`)
-    
+
     switch (action) {
       case 'startTask':
         // Handle task start logic
-        console.log('Starting task...')
+        // console.log('Starting task...')
         break
-      
+
       case 'transmitDone':
         // Handle form completion/submission
-        console.log('Transmitting form completion...')
+        // console.log('Transmitting form completion...')
         // You can add your final submission logic here
         break
-      
+
       default:
         console.log(`Unknown action: ${action}`)
     }
@@ -302,10 +324,18 @@ const TaskForm = () => {
         onSubmit={handleFormSubmit}
         enableReinitialize={true}
       >
-        {({ values, errors, touched, handleChange, handleBlur, handleSubmit, setFieldValue }) => (
+        {({
+          values,
+          errors,
+          touched,
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          setFieldValue,
+        }) => (
           <>
             {/* Content */}
-            <ScrollView 
+            <ScrollView
               style={styles.content}
               contentContainerStyle={styles.contentContainer}
               showsVerticalScrollIndicator={false}
@@ -313,19 +343,60 @@ const TaskForm = () => {
               {/* Task Info Card */}
               <View style={[styles.card, isDark && styles.cardDark]}>
                 <View style={styles.cardHeader}>
-                  <MaterialIcons 
-                    name="assignment" 
-                    size={24} 
-                    color={isDark ? '#60A5FA' : '#3B82F6'} 
-                  />
-                  <Text style={[styles.cardTitle, isDark && styles.textDark]}>
-                    Task Details
-                  </Text>
+                  <View style={styles.cardHeaderLeft}>
+                    <MaterialIcons
+                      name="assignment"
+                      size={24}
+                      color={isDark ? '#60A5FA' : '#3B82F6'}
+                    />
+                    <Text style={[styles.cardTitle, isDark && styles.textDark]}>
+                      Task Details
+                    </Text>
+                  </View>
+                  <Pressable
+                    onPress={() => {
+                      // Reset all form values to initial state
+                      const resetValues: Record<string, any> = {}
+                      parsedTask.form
+                        ?.filter((field) => field.inputType !== 'geo')
+                        .forEach((field) => {
+                          if (field.inputType === 'checkboxes') {
+                            resetValues[field.key] = []
+                          } else {
+                            resetValues[field.key] = ''
+                          }
+                        })
+
+                      // Reset all fields using Formik's resetForm
+                      Object.keys(resetValues).forEach((key) => {
+                        setFieldValue(key, resetValues[key])
+                      })
+
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium)
+                    }}
+                    style={[
+                      styles.resetButton,
+                      isDark && styles.resetButtonDark,
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="refresh"
+                      size={20}
+                      color={isDark ? '#60A5FA' : '#3B82F6'}
+                    />
+                    {/* <Text style={[styles.resetButtonText, isDark && styles.resetButtonTextDark]}>
+                      Reset
+                    </Text> */}
+                  </Pressable>
                 </View>
-                <Text style={[styles.taskId, isDark && styles.textSecondaryDark]}>
+                <Text
+                  style={[styles.taskId, isDark && styles.textSecondaryDark]}
+                >
                   Task ID: {parsedTask.taskId}
                 </Text>
-                <Text style={[styles.taskType, isDark && styles.textSecondaryDark]}>
+                <Text
+                  style={[styles.taskType, isDark && styles.textSecondaryDark]}
+                >
                   Type: {parsedTask.taskType}
                 </Text>
               </View>
@@ -334,40 +405,50 @@ const TaskForm = () => {
               {parsedTask?.form && parsedTask.form.length > 0 && (
                 <View style={[styles.card, isDark && styles.cardDark]}>
                   <View style={styles.cardHeader}>
-                    <MaterialIcons 
-                      name="dynamic-feed" 
-                      size={24} 
-                      color={isDark ? '#34D399' : '#10B981'} 
+                    <MaterialIcons
+                      name="dynamic-feed"
+                      size={24}
+                      color={isDark ? '#34D399' : '#10B981'}
                     />
                     <Text style={[styles.cardTitle, isDark && styles.textDark]}>
                       Form Fields
                     </Text>
                   </View>
-                  
-                  {parsedTask.form.filter(field => field.inputType !== 'geo').map((field, index) => (
-                    <View key={field.uniqueId || field.key || index} style={styles.formFieldContainer}>
-                      <DynamicFormField
-                        field={field}
-                        value={values[field.key]}
-                        onChange={(key: string, value: any) => setFieldValue(key, value)}
-                        error={touched[field.key] && errors[field.key] ? String(errors[field.key]) : undefined}
-                        task={parsedTask}
-                        formValues={values}
-                        formik={{
-                          values,
-                          errors,
-                          touched,
-                          handleChange,
-                          handleBlur,
-                          handleSubmit,
-                          setFieldValue
-                        }}
-                      />
-                    </View>
-                  ))}
+
+                  {parsedTask.form
+                    .filter((field) => field.inputType !== 'geo')
+                    .map((field, index) => (
+                      <View
+                        key={field.uniqueId || field.key || index}
+                        style={styles.formFieldContainer}
+                      >
+                        <DynamicFormField
+                          field={field}
+                          value={values[field.key]}
+                          onChange={(key: string, value: any) =>
+                            setFieldValue(key, value)
+                          }
+                          error={
+                            touched[field.key] && errors[field.key]
+                              ? String(errors[field.key])
+                              : undefined
+                          }
+                          task={parsedTask}
+                          formValues={values}
+                          formik={{
+                            values,
+                            errors,
+                            touched,
+                            handleChange,
+                            handleBlur,
+                            handleSubmit,
+                            setFieldValue,
+                          }}
+                        />
+                      </View>
+                    ))}
                 </View>
               )}
-
             </ScrollView>
           </>
         )}
@@ -426,7 +507,35 @@ const styles = StyleSheet.create({
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+  cardHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  resetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: '#F3F4F6',
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+  },
+  resetButtonDark: {
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
+  },
+  resetButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
+    color: '#374151',
+  },
+  resetButtonTextDark: {
+    color: '#D1D5DB',
   },
   cardTitle: {
     fontSize: 18,

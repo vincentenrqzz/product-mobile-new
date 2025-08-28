@@ -13,8 +13,8 @@ import SignatureCanvas from 'react-native-signature-canvas'
 
 interface SignatureProps {
   label?: string
-  onSignatureCapture: (signature: string) => void
-  value?: string
+  onSignatureCapture: (filename: string) => void
+  value?: string // filename
   error?: string
   helperText?: string
   containerStyle?: ViewStyle
@@ -31,14 +31,15 @@ const Signature: React.FC<SignatureProps> = ({
   required = false,
 }) => {
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [currentSignature, setCurrentSignature] = useState<string | null>(
-    value || null,
-  )
+  const [currentSignature, setCurrentSignature] = useState<string | null>(null)
 
   // Handle signature canvas events
   const handleOK = (signature: string) => {
+    // Store the signature image for display
     setCurrentSignature(signature)
-    onSignatureCapture(signature)
+    // Generate filename for the form value
+    const filename = `signature_${Date.now()}.png`
+    onSignatureCapture(filename)
     setIsModalVisible(false)
     Alert.alert('Success', 'Signature captured successfully!')
   }
@@ -255,6 +256,21 @@ const Signature: React.FC<SignatureProps> = ({
             }}
             resizeMode="contain"
           />
+          <TouchableOpacity
+            onPress={handleClear}
+            style={{
+              marginTop: 8,
+              alignSelf: 'flex-end',
+              padding: 8,
+              backgroundColor: '#EF4444',
+              borderRadius: 6,
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={{ color: '#FFFFFF', fontSize: 12, fontWeight: '600' }}>
+              Clear Signature
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
 

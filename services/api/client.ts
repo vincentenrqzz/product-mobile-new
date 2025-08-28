@@ -23,7 +23,7 @@ client.interceptors.request.use(
       config.headers['x-tenant-name'] = userInfo.tenant
     }
     // console.log('config.headers', config.headers)
-    console.log('config.url', config.baseURL, config.url)
+    console.log('config.url', `${config.baseURL}${config.url}`)
 
     return config
   },

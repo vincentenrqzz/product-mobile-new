@@ -58,6 +58,9 @@ export default async () => {
             reject(new Error('Task update timed out'))
           }, 60000),
         )
+
+        console.log('task', task.taskId)
+        console.log('newStatus', newStatus)
         const send = changeTaskStatus(task.taskId, task, taskTypes, signal)
 
         const checker = new Promise<never>((_, reject) => {
@@ -91,8 +94,9 @@ export default async () => {
             { fireImmediately: true }, // run once with current value
           )
         })
-        const response: any = await Promise.race([timeout, send, checker])
-        // console.log('updating task', response?.data)
+        // const response: any = await Promise.race([timeout, send, checker])
+        const response: any = await Promise.race([send])
+        console.log('updating task', response?.data)
         if (response?.data) {
           return { success: true, taskId: task.taskId }
         }
@@ -104,7 +108,7 @@ export default async () => {
           reason: 'invalid_response',
         }
       } catch (error: any) {
-        // console.log('Error', error)
+        console.log('Error', error)
         // NotificationService.sendUploadFailedNotification()
 
         return { success: false, taskId: task.taskId, reason: error.message }
@@ -114,7 +118,7 @@ export default async () => {
 
     // Process results
     results.forEach((result) => {
-      // console.log('results', results)
+      console.log('results', results)
       if (result.success) {
         NotificationService.sendCompletedUploadPendingTaskNotification({
           taskId: result.taskId,

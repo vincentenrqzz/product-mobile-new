@@ -29,7 +29,7 @@ export default async () => {
       taskId: item.taskId,
     })
     const result = await uploadImageWithRetry(0, 0, item)
-    // console.log('result batchPromises', result)
+    console.log('result batchPromises', result)
     if (!result) {
       const errorMessage = result?.error || 'Upload failed'
       // NotificationService.sendUploadFailedNotification({

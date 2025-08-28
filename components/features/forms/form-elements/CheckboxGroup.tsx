@@ -1,10 +1,5 @@
 import React from 'react'
-import {
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native'
+import { Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 
 interface CheckboxOption {
   id: string
@@ -14,7 +9,7 @@ interface CheckboxOption {
 
 interface CheckboxGroupProps {
   label?: string
-  options: CheckboxOption[]
+  options: CheckboxOption[] | Record<string, string>
   selectedValues: string[]
   onSelectionChange: (selectedValues: string[]) => void
   error?: string
@@ -33,22 +28,31 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
   containerStyle,
   required = false,
 }) => {
+  // Transform options to array format if it's an object
+  const normalizedOptions: CheckboxOption[] = Array.isArray(options)
+    ? options
+    : Object.entries(options || {}).map(([key, value]) => ({
+        id: key,
+        label: String(value),
+        value: key,
+      }))
+
   const toggleSelection = (value: string) => {
     const isSelected = selectedValues.includes(value)
     let newSelection: string[]
-    
+
     if (isSelected) {
-      newSelection = selectedValues.filter(item => item !== value)
+      newSelection = selectedValues.filter((item) => item !== value)
     } else {
       newSelection = [...selectedValues, value]
     }
-    
+
     onSelectionChange(newSelection)
   }
 
   const renderCheckbox = (option: CheckboxOption) => {
     const isSelected = selectedValues.includes(option.value)
-    
+
     return (
       <TouchableOpacity
         key={option.id}
@@ -86,7 +90,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
             </Text>
           )}
         </View>
-        
+
         {/* Label */}
         <Text
           style={{
@@ -119,9 +123,7 @@ const CheckboxGroup: React.FC<CheckboxGroupProps> = ({
       )}
 
       {/* Checkbox options */}
-      <View>
-        {options.map(renderCheckbox)}
-      </View>
+      <View>{normalizedOptions.map(renderCheckbox)}</View>
 
       {/* Helper text or error message */}
       {(error || helperText) && (

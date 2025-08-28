@@ -43,11 +43,10 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
   formik,
   ...props
 }) => {
-  // If Formik is available, use its state for loading and validation
+  // If Formik is available, use its state for loading only
   const isFormikLoading = formik?.isSubmitting || false
-  const isFormikInvalid = formik ? !formik.isValid : false
   const actualLoading = loading || isFormikLoading
-  const isDisabled = disabled || actualLoading || isFormikInvalid
+  const isDisabled = disabled || actualLoading
 
   // Size configurations
   const sizeConfig = {
@@ -79,7 +78,7 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       alignSelf: 'center' as const,
-      width: '50%',
+      width: '50%' as const,
       ...sizeConfig[size],
     }
 
@@ -138,10 +137,27 @@ const SubmitButton: React.FC<SubmitButtonProps> = ({
 
   const styles = getVariantStyles()
 
+  const handlePress = () => {
+    console.log('🔥 SubmitButton pressed!')
+    console.log('📝 Button title:', title)
+    console.log('⚙️ Button variant:', variant)
+    console.log('📊 Button size:', size)
+
+    if (formik) {
+      console.log('📋 Form values:', formik.values)
+      console.log('❌ Form errors:', formik.errors)
+      console.log('✅ Form is valid:', formik.isValid)
+      console.log('🔄 Form is submitting:', formik.isSubmitting)
+    }
+
+    // Call the original onPress handler
+    onPress()
+  }
+
   return (
     <TouchableOpacity
       style={[styles.container, containerStyle]}
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
       activeOpacity={isDisabled ? 1 : 0.8}
       {...props}

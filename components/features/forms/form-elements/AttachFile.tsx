@@ -1,18 +1,12 @@
 import { MaterialIcons } from '@expo/vector-icons'
-import React, { useState } from 'react'
-import {
-  Alert,
-  Text,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native'
 import * as DocumentPicker from 'expo-document-picker'
+import React, { useState } from 'react'
+import { Alert, Text, TouchableOpacity, View, ViewStyle } from 'react-native'
 
 interface AttachFileProps {
   label?: string
-  onFileSelect: (files: { name: string; uri: string; type: string; size: number }[]) => void
-  selectedFiles?: { name: string; uri: string; type: string; size: number }[]
+  onFileSelect: (filename: string) => void
+  value?: string // filename
   error?: string
   helperText?: string
   containerStyle?: ViewStyle
@@ -23,7 +17,7 @@ interface AttachFileProps {
 const AttachFile: React.FC<AttachFileProps> = ({
   label,
   onFileSelect,
-  selectedFiles = [],
+  value = '',
   error,
   helperText,
   containerStyle,
@@ -36,7 +30,7 @@ const AttachFile: React.FC<AttachFileProps> = ({
     try {
       const result = await DocumentPicker.getDocumentAsync({
         type: '*/*',
-        multiple: true,
+        multiple: false,
         copyToCacheDirectory: true,
       })
 
@@ -45,97 +39,68 @@ const AttachFile: React.FC<AttachFileProps> = ({
       }
 
       const maxSizeBytes = maxFileSize * 1024 * 1024
-      const validFiles = []
-      const oversizedFiles = []
+      const file = result.assets[0]
 
-      // Handle both single and multiple file results
-      const assets = Array.isArray(result.assets) ? result.assets : [result.assets].filter(Boolean)
-
-      for (const file of assets) {
-        if (file.size && file.size > maxSizeBytes) {
-          oversizedFiles.push(file.name)
-        } else {
-          validFiles.push({
-            name: file.name || 'Unknown file',
-            uri: file.uri,
-            type: file.mimeType || 'application/octet-stream',
-            size: file.size || 0,
-          })
-        }
-      }
-
-      if (oversizedFiles.length > 0) {
+      if (file.size && file.size > maxSizeBytes) {
         Alert.alert(
           'File Size Limit Exceeded',
-          `The following files exceed the ${maxFileSize}MB limit:\n${oversizedFiles.join(', ')}\n\nOnly valid files will be attached.`
+          `The selected file exceeds the ${maxFileSize}MB limit. Please choose a smaller file.`,
         )
+        return
       }
 
-      if (validFiles.length > 0) {
-        const updatedFiles = [...selectedFiles, ...validFiles]
-        onFileSelect(updatedFiles)
-        setIsExpanded(false)
-      }
+      // Store only the filename as the value
+      onFileSelect(file.name)
+      setIsExpanded(false)
     } catch (err) {
-      console.error('File picker error:', err)
+      // console.log('Error picking file:', err)
       Alert.alert('Error', 'Failed to pick file. Please try again.')
     }
   }
 
-  const removeFile = (index: number) => {
+  const removeFile = () => {
+    Alert.alert('Remove File', 'Are you sure you want to remove this file?', [
+      { text: 'No', style: 'cancel' },
+      {
+        text: 'Yes',
+        style: 'destructive',
+        onPress: () => {
+          onFileSelect('')
+        },
+      },
+    ])
+  }
+
+  const clearFile = () => {
     Alert.alert(
-      'Remove File',
-      'Are you sure you want to remove this file?',
+      'Clear File',
+      'Are you sure you want to remove the attached file?',
       [
         { text: 'No', style: 'cancel' },
         {
           text: 'Yes',
           style: 'destructive',
           onPress: () => {
-            const updatedFiles = selectedFiles.filter((_, i) => i !== index)
-            onFileSelect(updatedFiles)
+            onFileSelect('')
           },
         },
-      ]
+      ],
     )
-  }
-
-  const clearAllFiles = () => {
-    Alert.alert(
-      'Clear All Files',
-      'Are you sure you want to remove all attached files?',
-      [
-        { text: 'No', style: 'cancel' },
-        {
-          text: 'Yes',
-          style: 'destructive',
-          onPress: () => {
-            onFileSelect([])
-          },
-        },
-      ]
-    )
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   const fileActions = [
     {
-      title: 'Select Files',
+      title: 'Select File',
       icon: 'attach-file',
       onPress: pickFile,
       color: '#241c4c',
     },
     {
-      title: 'Clear All',
-      icon: 'clear-all',
-      onPress: clearAllFiles,
+      title: 'Clear',
+      icon: 'clear',
+      onPress: clearFile,
       color: '#EF4444',
-      disabled: selectedFiles.length === 0,
+      disabled: !value,
     },
   ]
 
@@ -185,7 +150,7 @@ const AttachFile: React.FC<AttachFileProps> = ({
             fontSize: 14,
           }}
         >
-          Attach Files
+          Attach File
         </Text>
       </TouchableOpacity>
 
@@ -246,84 +211,72 @@ const AttachFile: React.FC<AttachFileProps> = ({
         </View>
       )}
 
-      {/* Selected Files Display */}
-      {selectedFiles.length > 0 && (
+      {/* Selected File Display */}
+      {value && (
         <View
           style={{
             marginTop: 12,
-            gap: 8,
           }}
         >
-          {selectedFiles.map((file, index) => (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: '#F9FAFB',
+              borderWidth: 1,
+              borderColor: '#E5E7EB',
+              borderRadius: 8,
+              padding: 12,
+            }}
+          >
             <View
-              key={index}
               style={{
-                flexDirection: 'row',
+                width: 32,
+                height: 32,
+                borderRadius: 16,
+                backgroundColor: '#241c4c15',
                 alignItems: 'center',
-                backgroundColor: '#F9FAFB',
-                borderWidth: 1,
-                borderColor: '#E5E7EB',
-                borderRadius: 8,
-                padding: 12,
+                justifyContent: 'center',
+                marginRight: 12,
               }}
             >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor: '#241c4c15',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginRight: 12,
-                }}
-              >
-                <MaterialIcons
-                  name="description"
-                  size={16}
-                  color="#241c4c"
-                />
-              </View>
-              
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 13,
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: 2,
-                  }}
-                  numberOfLines={1}
-                  ellipsizeMode="middle"
-                >
-                  {file.name}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 11,
-                    color: '#6B7280',
-                  }}
-                >
-                  {formatFileSize(file.size)} • {file.type.split('/')[1]?.toUpperCase() || 'FILE'}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={{
-                  padding: 8,
-                  marginLeft: 8,
-                }}
-                onPress={() => removeFile(index)}
-                activeOpacity={0.7}
-              >
-                <MaterialIcons
-                  name="close"
-                  size={16}
-                  color="#EF4444"
-                />
-              </TouchableOpacity>
+              <MaterialIcons name="description" size={16} color="#241c4c" />
             </View>
-          ))}
+
+            <View style={{ flex: 1 }}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: '600',
+                  color: '#374151',
+                  marginBottom: 2,
+                }}
+                numberOfLines={1}
+                ellipsizeMode="middle"
+              >
+                {value}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 11,
+                  color: '#6B7280',
+                }}
+              >
+                Attached File
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              style={{
+                padding: 8,
+                marginLeft: 8,
+              }}
+              onPress={removeFile}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons name="close" size={16} color="#EF4444" />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 

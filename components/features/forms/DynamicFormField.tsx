@@ -1,24 +1,26 @@
+import { FormFieldTypes, ParsedFormField } from '@/types/form'
+import { useRouter } from 'expo-router'
 import React from 'react'
-import { CreateComponentProps, FormFieldTypes, ParsedFormField } from '@/types/form'
 
 // Import all form element components
-import TextForm from './form-elements/TextForm'
-import SingleText from './form-elements/SingleText'
+import useTaskStore from '@/store/tasks'
+import AccordionContainer from './form-elements/AccordionContainer'
+import AssignedField from './form-elements/AssignedField'
+import AttachFile from './form-elements/AttachFile'
+import CheckboxGroup from './form-elements/CheckboxGroup'
 import DatePickerButton from './form-elements/DatePickerButton'
 import DateTimePicker from './form-elements/DateTimePicker'
 import DateTimeRegister from './form-elements/DateTimeRegister'
-import CheckboxGroup from './form-elements/CheckboxGroup'
-import RadioGroup from './form-elements/RadioGroup'
 import Dropdown from './form-elements/Dropdown'
-import SubmitButton from './form-elements/SubmitButton'
-import TakePictureButton from './form-elements/TakePictureButton'
-import AttachFile from './form-elements/AttachFile'
-import Signature from './form-elements/Signature'
-import PrinterButton from './form-elements/PrinterButton'
 import Markup from './form-elements/Markup'
+import PrinterButton from './form-elements/PrinterButton'
+import RadioGroup from './form-elements/RadioGroup'
+import Signature from './form-elements/Signature'
+import SingleText from './form-elements/SingleText'
+import SubmitButton from './form-elements/SubmitButton'
 import Survey from './form-elements/Survey'
-import AccordionContainer from './form-elements/AccordionContainer'
-import AssignedField from './form-elements/AssignedField'
+import TakePictureButton from './form-elements/TakePictureButton'
+import TextForm from './form-elements/TextForm'
 
 interface DynamicFormFieldProps {
   field: ParsedFormField
@@ -45,8 +47,10 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
   error,
   task,
   formValues = {},
-  formik
+  formik,
 }) => {
+  const { addPendingTask } = useTaskStore()
+  const router = useRouter()
   const handleChange = (newValue: any) => {
     onChange(field.key, newValue)
   }
@@ -63,13 +67,79 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
     field,
     task,
     formValues,
-    formik
+    formik,
+  }
+
+  // Helper function to check if a value is considered "empty"
+  const isEmpty = (value: any): boolean => {
+    if (value === null || value === undefined || value === '') {
+      return true
+    }
+
+    if (Array.isArray(value) && value.length === 0) {
+      return true
+    }
+
+    // Don't consider Date objects as empty even if they're objects
+    if (value instanceof Date) {
+      return false
+    }
+
+    if (typeof value === 'object' && Object.keys(value).length === 0) {
+      return true
+    }
+
+    return false
+  }
+
+  // Helper function to evaluate field conditions
+  const evaluateConditions = (
+    conditions: Record<string, string[]>,
+  ): boolean => {
+    if (!conditions || Object.keys(conditions).length === 0) {
+      return true // No conditions means field should be visible
+    }
+
+    return Object.entries(conditions).every(([fieldKey, conditionValues]) => {
+      const fieldValue = formValues[fieldKey]
+
+      return conditionValues.some((condition) => {
+        if (condition === '!null') {
+          return !isEmpty(fieldValue)
+        }
+        if (condition === 'null') {
+          return isEmpty(fieldValue)
+        }
+        // Direct value comparison
+        return fieldValue === condition
+      })
+    })
   }
 
   // Filter out geo fields - they should be hidden
   if (field.inputType === FormFieldTypes.GEO) {
     return null
   }
+
+  // Check field conditions - only show field if conditions are met
+  if (field.conditions && !evaluateConditions(field.conditions)) {
+    // Debug logging for condition evaluation
+    // console.log(`Field ${field.key} hidden due to conditions:`, {
+    //   conditions: field.conditions,
+    //   formValues,
+    //   evaluation: evaluateConditions(field.conditions),
+    // })
+    return null
+  }
+
+  // Debug logging for visible fields
+  // if (field.conditions) {
+  //   console.log(`Field ${field.key} visible:`, {
+  //     conditions: field.conditions,
+  //     formValues,
+  //     evaluation: evaluateConditions(field.conditions),
+  //   })
+  // }
 
   // Map inputType to corresponding component
   const renderFormField = () => {
@@ -86,21 +156,11 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             />
           )
         } else {
-          return (
-            <SingleText
-              {...commonProps}
-              onChangeText={handleChange}
-            />
-          )
+          return <SingleText {...commonProps} onChangeText={handleChange} />
         }
 
       case FormFieldTypes.DATE_PICKER:
-        return (
-          <DatePickerButton
-            {...commonProps}
-            onDateSelect={handleChange}
-          />
-        )
+        return <DatePickerButton {...commonProps} onDateSelect={handleChange} />
 
       case FormFieldTypes.DATE_TIME_PICKER:
         return (
@@ -132,7 +192,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
         return (
           <CheckboxGroup
             label={field.label}
-            options={Array.isArray(field.options) ? field.options : []}
+            options={field.options || []}
             selectedValues={Array.isArray(value) ? value : []}
             onSelectionChange={handleChange}
             error={error}
@@ -145,7 +205,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
         return (
           <RadioGroup
             label={field.label}
-            options={Array.isArray(field.options) ? field.options : []}
+            options={field.options || []}
             selectedValue={value}
             onSelectionChange={handleChange}
             error={error}
@@ -174,9 +234,11 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
           <TakePictureButton
             label={field.label}
             onMediaSelect={handleChange}
+            value={Array.isArray(value) ? value : value ? [value] : []}
             error={error}
             required={field.rules?.required === true}
             helperText={field.note || field.description}
+            task={task}
           />
         )
 
@@ -185,6 +247,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
           <AttachFile
             label={field.label}
             onFileSelect={handleChange}
+            value={typeof value === 'string' ? value : ''}
             error={error}
             required={field.rules?.required === true}
             helperText={field.note || field.description}
@@ -196,6 +259,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
           <Signature
             label={field.label}
             onSignatureCapture={handleChange}
+            value={typeof value === 'string' ? value : ''}
             error={error}
             required={field.rules?.required === true}
             helperText={field.note || field.description}
@@ -212,11 +276,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
         )
 
       case FormFieldTypes.MARKUP:
-        return (
-          <Markup
-            content={field.description || field.label}
-          />
-        )
+        return <Markup content={field.description || field.label} />
 
       case FormFieldTypes.SURVEY:
         return (
@@ -231,19 +291,86 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
         )
 
       case FormFieldTypes.BUTTON:
+        const handleButtonPress = () => {
+          if (formik) {
+            // Set current date/time as button value
+            const currentDateTime = new Date().toISOString()
+            formik.setFieldValue(field.key, currentDateTime)
+
+            // Log the updated task object with injected form values
+            const updatedFormValues = {
+              ...formik.values,
+              [field.key]: currentDateTime,
+            }
+
+            const updatedTask = {
+              ...task,
+              form:
+                task?.form?.map((formField: any) => ({
+                  ...formField,
+                  value:
+                    updatedFormValues[formField.key] !== undefined
+                      ? updatedFormValues[formField.key]
+                      : formField.value,
+                })) || [],
+              lastUpdatedAt: new Date().toISOString(),
+            }
+
+            console.log(
+              '🎯 Updated task object with injected form values:',
+              JSON.stringify(updatedTask),
+            )
+            console.log(
+              '📝 Form values injected:',
+              JSON.stringify(updatedFormValues),
+            )
+
+            // Add to pending tasks with the required structure
+            const pendingTaskData = {
+              task: updatedTask,
+              newStatus: 'done',
+              partialStatus: 'pending',
+            }
+
+            addPendingTask(pendingTaskData)
+            console.log(
+              '📋 Added task to pending tasks:',
+              JSON.stringify(pendingTaskData),
+            )
+
+            // Execute form submission
+            formik.handleSubmit()
+
+            // Navigate back to tasks screen
+            router.push('/(main)/(tabs)/tasks')
+          } else {
+            // Set current date/time as button value even without formik
+            const currentDateTime = new Date().toISOString()
+            handleChange(currentDateTime)
+
+            // Navigate back to tasks screen
+            router.push('/(main)/(tabs)/tasks')
+          }
+        }
+
         return (
           <SubmitButton
             title={field.label}
-            onPress={formik ? formik.handleSubmit : () => handleChange(null)}
-            size="small"
-            formik={formik ? {
-              values: formik.values,
-              errors: formik.errors,
-              touched: formik.touched,
-              isValid: Object.keys(formik.errors).length === 0,
-              isSubmitting: false, // You can implement submission state tracking if needed
-              handleSubmit: formik.handleSubmit
-            } : undefined}
+            onPress={handleButtonPress}
+            size="medium"
+            variant="primary"
+            formik={
+              formik
+                ? {
+                    values: formik.values,
+                    errors: formik.errors,
+                    touched: formik.touched,
+                    isValid: Object.keys(formik.errors).length === 0,
+                    isSubmitting: false,
+                    handleSubmit: formik.handleSubmit,
+                  }
+                : undefined
+            }
           />
         )
 
@@ -254,7 +381,11 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
             required={field.rules?.required === true}
             helperText={field.note || field.description}
             error={error}
-            fields={Array.isArray(field.options?.formFields) ? field.options.formFields : []}
+            fields={
+              Array.isArray(field.options?.formFields)
+                ? field.options.formFields
+                : []
+            }
             value={value || {}}
             onValueChange={handleChange}
             task={task}
@@ -278,12 +409,7 @@ const DynamicFormField: React.FC<DynamicFormFieldProps> = ({
       default:
         // Fallback to text input for unknown types
         console.warn(`Unknown form field type: ${field.inputType}`)
-        return (
-          <SingleText
-            {...commonProps}
-            onChangeText={handleChange}
-          />
-        )
+        return <SingleText {...commonProps} onChangeText={handleChange} />
     }
   }
 

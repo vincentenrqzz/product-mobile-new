@@ -1,3 +1,4 @@
+import useTaskStore from '@/store/tasks'
 import { MaterialIcons } from '@expo/vector-icons'
 import * as ImagePicker from 'expo-image-picker'
 import React, { useState } from 'react'
@@ -12,28 +13,72 @@ import {
 
 interface TakePictureButtonProps {
   label?: string
-  onMediaSelect: (media: { uri: string; type: 'image' | 'video' }[]) => void
+  onMediaSelect: (mediaData: string | string[]) => void
+  value?: string | string[]
   error?: string
   helperText?: string
   containerStyle?: ViewStyle
   required?: boolean
+  task?: any // Add task prop to get taskId
 }
 
 const TakePictureButton: React.FC<TakePictureButtonProps> = ({
   label,
   onMediaSelect,
+  value,
   error,
   helperText,
   containerStyle,
   required = false,
+  task,
 }) => {
+  const { addPendingImages } = useTaskStore()
   const [isExpanded, setIsExpanded] = useState(false)
-  const [mediaItems, setMediaItems] = useState<{ uri: string; type: 'image' | 'video' }[]>([])
+  const [mediaItems, setMediaItems] = useState<
+    { uri: string; type: 'image' | 'video' }[]
+  >(() => {
+    // Initialize from existing value
+    if (Array.isArray(value)) {
+      return value.map((filename) => ({
+        uri: `file://placeholder/${filename}`, // Placeholder URI for existing files
+        type: 'image' as const, // Default to image type
+      }))
+    } else if (value) {
+      return [
+        {
+          uri: `file://placeholder/${value}`,
+          type: 'image' as const,
+        },
+      ]
+    }
+    return []
+  })
 
   const addMediaItem = (newMedia: { uri: string; type: 'image' | 'video' }) => {
     const updatedItems = [...mediaItems, newMedia]
     setMediaItems(updatedItems)
-    onMediaSelect(updatedItems)
+
+    // Add to pending images if we have a task
+    if (task?.taskId) {
+      const filename =
+        newMedia.uri.split('/').pop() || `${newMedia.type}_${Date.now()}`
+      addPendingImages({
+        taskId: task.taskId,
+        name: filename,
+        filePath: newMedia.uri,
+      })
+      console.log('📸 Added image to pending images:', {
+        taskId: task.taskId,
+        name: filename,
+        filePath: newMedia.uri,
+      })
+    }
+
+    // Return array of all filenames
+    const filenames = updatedItems.map(
+      (item) => item.uri.split('/').pop() || `${item.type}_${Date.now()}`,
+    )
+    onMediaSelect(filenames)
     setIsExpanded(false)
   }
 
@@ -94,10 +139,36 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
     })
 
     if (!result.canceled) {
-      const newItems = result.assets.map(asset => ({ uri: asset.uri, type: 'image' as const }))
+      const newItems = result.assets.map((asset) => ({
+        uri: asset.uri,
+        type: 'image' as const,
+      }))
       const updatedItems = [...mediaItems, ...newItems]
       setMediaItems(updatedItems)
-      onMediaSelect(updatedItems)
+
+      // Add each new image to pending images if we have a task
+      if (task?.taskId) {
+        newItems.forEach((item) => {
+          const filename =
+            item.uri.split('/').pop() || `${item.type}_${Date.now()}`
+          addPendingImages({
+            taskId: task.taskId,
+            name: filename,
+            filePath: item.uri,
+          })
+          console.log('📸 Added gallery image to pending images:', {
+            taskId: task.taskId,
+            name: filename,
+            filePath: item.uri,
+          })
+        })
+      }
+
+      // Return array of all filenames
+      const filenames = updatedItems.map(
+        (item) => item.uri.split('/').pop() || `${item.type}_${Date.now()}`,
+      )
+      onMediaSelect(filenames)
       setIsExpanded(false)
     }
   }
@@ -114,10 +185,36 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
     })
 
     if (!result.canceled) {
-      const newItems = result.assets.map(asset => ({ uri: asset.uri, type: 'video' as const }))
+      const newItems = result.assets.map((asset) => ({
+        uri: asset.uri,
+        type: 'video' as const,
+      }))
       const updatedItems = [...mediaItems, ...newItems]
       setMediaItems(updatedItems)
-      onMediaSelect(updatedItems)
+
+      // Add each new video to pending images if we have a task
+      if (task?.taskId) {
+        newItems.forEach((item) => {
+          const filename =
+            item.uri.split('/').pop() || `${item.type}_${Date.now()}`
+          addPendingImages({
+            taskId: task.taskId,
+            name: filename,
+            filePath: item.uri,
+          })
+          console.log('🎥 Added gallery video to pending images:', {
+            taskId: task.taskId,
+            name: filename,
+            filePath: item.uri,
+          })
+        })
+      }
+
+      // Return array of all filenames
+      const filenames = updatedItems.map(
+        (item) => item.uri.split('/').pop() || `${item.type}_${Date.now()}`,
+      )
+      onMediaSelect(filenames)
       setIsExpanded(false)
     }
   }
@@ -251,7 +348,7 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
               </TouchableOpacity>
             ))}
           </View>
-          
+
           {/* Second Row */}
           <View
             style={{
@@ -360,7 +457,7 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
                   />
                 </View>
               )}
-              
+
               {/* Remove button */}
               <TouchableOpacity
                 style={{
@@ -387,12 +484,25 @@ const TakePictureButton: React.FC<TakePictureButtonProps> = ({
                         text: 'Yes',
                         style: 'destructive',
                         onPress: () => {
-                          const updatedItems = mediaItems.filter((_, i) => i !== index)
+                          const updatedItems = mediaItems.filter(
+                            (_, i) => i !== index,
+                          )
                           setMediaItems(updatedItems)
-                          onMediaSelect(updatedItems)
+                          // Update form value - if no items left, clear the value
+                          if (updatedItems.length === 0) {
+                            onMediaSelect([])
+                          } else {
+                            // Return array of all remaining filenames
+                            const filenames = updatedItems.map(
+                              (item) =>
+                                item.uri.split('/').pop() ||
+                                `${item.type}_${Date.now()}`,
+                            )
+                            onMediaSelect(filenames)
+                          }
                         },
                       },
-                    ]
+                    ],
                   )
                 }}
                 activeOpacity={0.7}

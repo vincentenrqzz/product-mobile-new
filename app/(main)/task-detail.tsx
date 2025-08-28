@@ -274,7 +274,7 @@ const TaskDetail = () => {
     }
 
     // TODO: Implement document viewing functionality
-    console.log('Viewing document:', imageUrl)
+    // console.log('Viewing document:', imageUrl)
     Alert.alert(
       'Document Viewer',
       'Document viewing functionality will be implemented here.',

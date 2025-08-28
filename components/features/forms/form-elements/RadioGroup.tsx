@@ -9,7 +9,7 @@ interface RadioOption {
 
 interface RadioGroupProps {
   label?: string
-  options: RadioOption[]
+  options: RadioOption[] | Record<string, string>
   selectedValue: string | null
   onSelectionChange: (selectedValue: string) => void
   error?: string
@@ -28,6 +28,15 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
   containerStyle,
   required = false,
 }) => {
+  // Transform options to array format if it's an object
+  const normalizedOptions: RadioOption[] = Array.isArray(options)
+    ? options
+    : Object.entries(options || {}).map(([key, value]) => ({
+        id: key,
+        label: String(value),
+        value: key,
+      }))
+
   const renderRadio = (option: RadioOption) => {
     const isSelected = selectedValue === option.value
 
@@ -100,7 +109,7 @@ const RadioGroup: React.FC<RadioGroupProps> = ({
       )}
 
       {/* Radio options */}
-      <View>{options.map(renderRadio)}</View>
+      <View>{normalizedOptions.map(renderRadio)}</View>
 
       {/* Helper text or error message */}
       {(error || helperText) && (
