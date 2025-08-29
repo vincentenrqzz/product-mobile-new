@@ -3,26 +3,26 @@ import TabTask from '@/components/features/tasks/TabTask'
 import TaskHeaderContent from '@/components/features/tasks/TaskHeaderContent'
 import TaskList from '@/components/features/tasks/TaskList'
 import ParallaxView from '@/components/ParallaxView'
+import { useAppTheme } from '@/hooks/useAppTheme'
 import getTaskByStatus from '@/lib/getTaskByStatus'
+import { safeGetTime } from '@/lib/safeDate'
 import useTaskStore, { Task } from '@/store/tasks'
 import useUserInfoStore from '@/store/userInfo'
 import { useQueryClient } from '@tanstack/react-query'
+import { LinearGradient } from 'expo-linear-gradient'
 import moment from 'moment-timezone'
 import 'moment/locale/en-gb'
 import 'moment/locale/he'
-import { createSafeDate, safeGetTime } from '@/lib/safeDate'
 import React, { useEffect, useMemo, useState } from 'react'
-import { View, StyleSheet, Dimensions } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { 
-  FadeIn, 
-  FadeInDown, 
-  useSharedValue, 
-  useAnimatedStyle,
+import { Dimensions, StyleSheet, View } from 'react-native'
+import Animated, {
+  Extrapolate,
+  FadeIn,
+  FadeInDown,
   interpolate,
-  Extrapolate
+  useAnimatedStyle,
+  useSharedValue,
 } from 'react-native-reanimated'
-import { useAppTheme } from '@/hooks/useAppTheme'
 
 /**
  * Modern Tasks Component - Main task management interface
@@ -33,11 +33,11 @@ export default function Tasks() {
   const queryClient = useQueryClient()
   const { colors, isDark } = useAppTheme()
   const screenHeight = Dimensions.get('window').height
-  
+
   //store
   const { userSettings, userInfo } = useUserInfoStore()
   const { tasks, pendingTasks, successTaskIds } = useTaskStore()
-  
+
   //state
   const [timeNow, setTimeNow] = useState<string | Date>('')
   const matchLogo = userSettings.find((item) => item.key === 'tenantLogo')
@@ -51,7 +51,7 @@ export default function Tasks() {
   const [timeTicker, setTimeTicker] = useState('')
   const [isRefresh, setIsRefresh] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   // Animation values
   const scrollY = useSharedValue(0)
   const headerOpacity = useSharedValue(1)
@@ -210,9 +210,7 @@ export default function Tasks() {
           if (timeA === 0) return 1
           if (timeB === 0) return -1
 
-          return statusesTabOnSort[tabKey] === 1
-            ? timeA - timeB
-            : timeB - timeA
+          return statusesTabOnSort[tabKey] === 1 ? timeA - timeB : timeB - timeA
         })
       }
     })
@@ -258,7 +256,11 @@ export default function Tasks() {
         return itemDateInIsrael === matchDateString
       } catch (error) {
         // If date parsing fails, exclude the item from results
-        console.warn('Failed to parse date for filtering:', item.executionEndDate, error)
+        console.warn(
+          'Failed to parse date for filtering:',
+          item.executionEndDate,
+          error,
+        )
         return false
       }
     })
@@ -317,9 +319,7 @@ export default function Tasks() {
       ]
 
       await Promise.all(
-        keys.map((key) => 
-          queryClient.invalidateQueries({ queryKey: key })
-        )
+        keys.map((key) => queryClient.invalidateQueries({ queryKey: key })),
       )
     } catch (error) {
       console.error('Failed to refetch tasks:', error)
@@ -328,26 +328,26 @@ export default function Tasks() {
       setIsLoading(false)
     }
   }
-  
+
   // Animated header styles
   const animatedHeaderStyle = useAnimatedStyle(() => {
     const opacity = interpolate(
       scrollY.value,
       [0, 100],
       [1, 0.9],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     )
-    
+
     const scale = interpolate(
       scrollY.value,
       [0, 100],
       [1, 0.98],
-      Extrapolate.CLAMP
+      Extrapolate.CLAMP,
     )
-    
+
     return {
       opacity,
-      transform: [{ scale }]
+      transform: [{ scale }],
     }
   })
 
@@ -380,18 +380,18 @@ export default function Tasks() {
       {/* Background Gradient */}
       <LinearGradient
         colors={
-          isDark 
-            ? ['#1a1a2e', '#16213e', '#0f3460'] 
+          isDark
+            ? ['#1a1a2e', '#16213e', '#0f3460']
             : ['#ffffff', '#f8faff', '#e8f4f8']
         }
         style={StyleSheet.absoluteFillObject}
       />
-      
+
       <ParallaxView
         headerBackgroundColor={{ light: 'transparent', dark: 'transparent' }}
         style={{ backgroundColor: 'transparent' }}
         headerContent={
-          <Animated.View 
+          <Animated.View
             style={[animatedHeaderStyle]}
             entering={FadeInDown.duration(600).springify()}
           >
@@ -406,14 +406,14 @@ export default function Tasks() {
                 }
                 className="absolute inset-0 rounded-b-3xl"
               />
-              
+
               {/* Header Content */}
-              <View 
-                className="px-4 py-2 rounded-b-3xl border-b-2"
+              <View
+                className="rounded-b-3xl border-b-2 px-4 py-2"
                 style={{
-                  borderBottomColor: isDark 
-                    ? 'rgba(255, 255, 255, 0.1)' 
-                    : 'rgba(0, 0, 0, 0.05)'
+                  borderBottomColor: isDark
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(0, 0, 0, 0.05)',
                 }}
               >
                 <TaskHeaderContent
@@ -422,15 +422,15 @@ export default function Tasks() {
                   setTimeNow={setTimeNow}
                   onRefreshTasks={onRefreshTasks}
                 />
-                
+
                 {/* Enhanced Search and Tab Section */}
                 <View className="mt-4">
                   <Searchbar
                     value={searchText}
                     onChangeText={setSearchText}
-                    searchbarBackgroundColor={{ 
-                      light: 'rgba(228, 242, 247, 0.8)', 
-                      dark: 'rgba(38, 63, 73, 0.8)' 
+                    searchbarBackgroundColor={{
+                      light: 'rgba(228, 242, 247, 0.8)',
+                      dark: 'rgba(38, 63, 73, 0.8)',
                     }}
                     setTimeNow={setTimeNow}
                     onRefreshTasks={onRefreshTasks}
@@ -450,7 +450,7 @@ export default function Tasks() {
         }
       >
         {/* Enhanced Task List Container */}
-        <Animated.View 
+        <Animated.View
           entering={FadeIn.duration(800).delay(200)}
           className="flex-1"
         >

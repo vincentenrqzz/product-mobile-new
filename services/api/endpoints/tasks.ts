@@ -75,7 +75,7 @@ export const changeTaskStatus = async (
       },
     )
 
-    console.log('response TASK', response.data)
+    // console.log('response TASK', response.data)
     // Check if response.data is a string and looks like HTML
     if (
       typeof response.data === 'string' &&
@@ -84,7 +84,7 @@ export const changeTaskStatus = async (
       return null
     }
 
-    console.log('TASK RESPO', response)
+    // console.log('TASK RESPO', response)
     return response
   } catch (error: any) {
     if (error.response) {

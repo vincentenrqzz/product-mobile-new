@@ -1,28 +1,25 @@
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'
-import React, { PropsWithChildren, useState } from 'react'
-import { 
-  Text, 
-  TouchableOpacity, 
-  useColorScheme, 
-  View, 
-  StyleSheet,
-  TextInput
-} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { 
-  FadeInUp, 
+import moment from 'moment'
+import React, { PropsWithChildren, useState } from 'react'
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  useColorScheme,
+  View,
+} from 'react-native'
+import Animated, {
   FadeInRight,
-  useAnimatedStyle, 
+  FadeInUp,
+  useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withSequence,
-  interpolate,
-  Extrapolate
+  withSpring,
 } from 'react-native-reanimated'
 import DatePickerModal from './DatePickerModal'
-import { BlurView } from 'expo-blur'
-import moment from 'moment'
 
 type Props = PropsWithChildren<{
   searchbarBackgroundColor?: { dark: string; light: string }
@@ -49,7 +46,7 @@ const Searchbar = ({
   const colorScheme = useColorScheme() ?? 'light'
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false)
   const [isFocused, setIsFocused] = useState(false)
-  
+
   // Animation values
   const searchScale = useSharedValue(1)
   const calendarScale = useSharedValue(1)
@@ -58,21 +55,18 @@ const Searchbar = ({
 
   // Animated styles
   const searchAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: searchScale.value },
-      { scale: focusScale.value }
-    ]
+    transform: [{ scale: searchScale.value }, { scale: focusScale.value }],
   }))
 
   const calendarAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: calendarScale.value }]
+    transform: [{ scale: calendarScale.value }],
   }))
 
   const refreshAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { scale: searchScale.value },
-      { rotate: `${refreshRotation.value}deg` }
-    ]
+      { rotate: `${refreshRotation.value}deg` },
+    ],
   }))
 
   const handleSearchFocus = () => {
@@ -86,18 +80,12 @@ const Searchbar = ({
   }
 
   const handleCalendarPress = () => {
-    calendarScale.value = withSequence(
-      withSpring(0.9),
-      withSpring(1)
-    )
+    calendarScale.value = withSequence(withSpring(0.9), withSpring(1))
     setIsDatePickerVisible(true)
   }
 
   const handleRefreshPress = () => {
-    searchScale.value = withSequence(
-      withSpring(0.9),
-      withSpring(1)
-    )
+    searchScale.value = withSequence(withSpring(0.9), withSpring(1))
     refreshRotation.value = withSpring(refreshRotation.value + 360)
     onRefreshTasks()
   }
@@ -112,113 +100,115 @@ const Searchbar = ({
       {/* Main Search Row */}
       <Animated.View entering={FadeInUp.duration(600)}>
         <Animated.View style={[styles.searchRow, searchAnimatedStyle]}>
-        {/* Enhanced Search Input */}
-        <View style={styles.searchInputContainer}>
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(55, 65, 81, 0.9)', 'rgba(75, 85, 99, 0.9)']
-                : ['rgba(255, 255, 255, 0.9)', 'rgba(248, 250, 255, 0.8)']
-            }
-            style={[
-              styles.searchInputBackground,
-              {
-                borderColor: isFocused 
-                  ? (isDark ? '#667EEA' : '#4F46E5')
-                  : 'rgba(255, 255, 255, 0.2)',
-                borderWidth: isFocused ? 2 : 1,
+          {/* Enhanced Search Input */}
+          <View style={styles.searchInputContainer}>
+            <LinearGradient
+              colors={
+                isDark
+                  ? ['rgba(55, 65, 81, 0.9)', 'rgba(75, 85, 99, 0.9)']
+                  : ['rgba(255, 255, 255, 0.9)', 'rgba(248, 250, 255, 0.8)']
               }
-            ]}
-          >
-            {/* Search Icon */}
-            <View style={styles.searchIconContainer}>
-              <Ionicons 
-                name="search-outline" 
-                size={20} 
-                color={isDark ? '#A0AEC0' : '#718096'} 
+              style={[
+                styles.searchInputBackground,
+                {
+                  borderColor: isFocused
+                    ? isDark
+                      ? '#667EEA'
+                      : '#4F46E5'
+                    : 'rgba(255, 255, 255, 0.2)',
+                  borderWidth: isFocused ? 2 : 1,
+                },
+              ]}
+            >
+              {/* Search Icon */}
+              <View style={styles.searchIconContainer}>
+                <Ionicons
+                  name="search-outline"
+                  size={20}
+                  color={isDark ? '#A0AEC0' : '#718096'}
+                />
+              </View>
+
+              {/* Text Input */}
+              <TextInput
+                value={value}
+                onChangeText={onChangeText}
+                onFocus={handleSearchFocus}
+                onBlur={handleSearchBlur}
+                placeholder="Search tasks..."
+                placeholderTextColor={isDark ? '#A0AEC0' : '#A0ADB8'}
+                style={[
+                  styles.textInput,
+                  {
+                    color: isDark ? '#F3F4F6' : '#111827',
+                  },
+                ]}
               />
-            </View>
-            
-            {/* Text Input */}
-            <TextInput
-              value={value}
-              onChangeText={onChangeText}
-              onFocus={handleSearchFocus}
-              onBlur={handleSearchBlur}
-              placeholder="Search tasks..."
-              placeholderTextColor={isDark ? '#A0AEC0' : '#A0ADB8'}
-              style={[
-                styles.textInput,
-                {
-                  color: isDark ? '#F3F4F6' : '#111827',
-                }
-              ]}
-            />
-          </LinearGradient>
-        </View>
+            </LinearGradient>
+          </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actionButtons}>
-          <Animated.View style={calendarAnimatedStyle}>
-            <TouchableOpacity
-              onPress={handleCalendarPress}
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: isDark 
-                    ? 'rgba(255, 255, 255, 0.1)' 
-                    : 'rgba(255, 255, 255, 0.8)',
-                }
-              ]}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={
-                  isDark
-                    ? ['rgba(102, 126, 234, 0.3)', 'rgba(118, 75, 162, 0.3)']
-                    : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
-                }
-                style={styles.actionButtonGradient}
+          {/* Action Buttons */}
+          <View style={styles.actionButtons}>
+            <Animated.View style={calendarAnimatedStyle}>
+              <TouchableOpacity
+                onPress={handleCalendarPress}
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: isDark
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(255, 255, 255, 0.8)',
+                  },
+                ]}
+                activeOpacity={0.8}
               >
-                <Ionicons 
-                  name="calendar-outline" 
-                  size={18} 
-                  color={isDark ? '#667EEA' : '#4F46E5'} 
-                />
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
+                <LinearGradient
+                  colors={
+                    isDark
+                      ? ['rgba(102, 126, 234, 0.3)', 'rgba(118, 75, 162, 0.3)']
+                      : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
+                  }
+                  style={styles.actionButtonGradient}
+                >
+                  <Ionicons
+                    name="calendar-outline"
+                    size={18}
+                    color={isDark ? '#667EEA' : '#4F46E5'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
 
-          <Animated.View style={refreshAnimatedStyle}>
-            <TouchableOpacity
-              onPress={handleRefreshPress}
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: isDark 
-                    ? 'rgba(255, 255, 255, 0.1)' 
-                    : 'rgba(255, 255, 255, 0.8)',
-                }
-              ]}
-              activeOpacity={0.8}
-            >
-              <LinearGradient
-                colors={
-                  isDark
-                    ? ['rgba(102, 126, 234, 0.3)', 'rgba(118, 75, 162, 0.3)']
-                    : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
-                }
-                style={styles.actionButtonGradient}
+            <Animated.View style={refreshAnimatedStyle}>
+              <TouchableOpacity
+                onPress={handleRefreshPress}
+                style={[
+                  styles.actionButton,
+                  {
+                    backgroundColor: isDark
+                      ? 'rgba(255, 255, 255, 0.1)'
+                      : 'rgba(255, 255, 255, 0.8)',
+                  },
+                ]}
+                activeOpacity={0.8}
               >
-                <Ionicons 
-                  name="reload" 
-                  size={18} 
-                  color={isDark ? '#667EEA' : '#4F46E5'} 
-                />
-              </LinearGradient>
-            </TouchableOpacity>
-          </Animated.View>
-        </View>
+                <LinearGradient
+                  colors={
+                    isDark
+                      ? ['rgba(102, 126, 234, 0.3)', 'rgba(118, 75, 162, 0.3)']
+                      : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
+                  }
+                  style={styles.actionButtonGradient}
+                >
+                  <Ionicons
+                    name="reload"
+                    size={18}
+                    color={isDark ? '#667EEA' : '#4F46E5'}
+                  />
+                </LinearGradient>
+              </TouchableOpacity>
+            </Animated.View>
+          </View>
         </Animated.View>
       </Animated.View>
 
@@ -226,34 +216,34 @@ const Searchbar = ({
       {timeNow && (
         <Animated.View entering={FadeInRight.duration(400)}>
           <View style={styles.dateFilterContainer}>
-          <LinearGradient
-            colors={
-              isDark
-                ? ['rgba(102, 126, 234, 0.2)', 'rgba(118, 75, 162, 0.2)']
-                : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
-            }
-            style={styles.dateFilter}
-          >
-            <Text 
-              style={[
-                styles.dateFilterText,
-                { color: isDark ? '#667EEA' : '#4F46E5' }
-              ]}
+            <LinearGradient
+              colors={
+                isDark
+                  ? ['rgba(102, 126, 234, 0.2)', 'rgba(118, 75, 162, 0.2)']
+                  : ['rgba(79, 70, 229, 0.1)', 'rgba(124, 58, 237, 0.1)']
+              }
+              style={styles.dateFilter}
             >
-              {formatSelectedDate(timeNow)}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setTimeNow('')}
-              style={styles.dateFilterClose}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
-              <MaterialCommunityIcons 
-                name="close" 
-                size={18} 
-                color={isDark ? '#667EEA' : '#4F46E5'} 
-              />
-            </TouchableOpacity>
-          </LinearGradient>
+              <Text
+                style={[
+                  styles.dateFilterText,
+                  { color: isDark ? '#667EEA' : '#4F46E5' },
+                ]}
+              >
+                {formatSelectedDate(timeNow)}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setTimeNow('')}
+                style={styles.dateFilterClose}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                <MaterialCommunityIcons
+                  name="close"
+                  size={18}
+                  color={isDark ? '#667EEA' : '#4F46E5'}
+                />
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </Animated.View>
       )}
@@ -286,8 +276,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 18,
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    height: 36,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -301,7 +289,6 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   textInput: {
-    flex: 1,
     fontSize: 16,
     fontWeight: '400',
     letterSpacing: -0.2,

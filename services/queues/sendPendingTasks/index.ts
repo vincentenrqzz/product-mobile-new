@@ -94,8 +94,8 @@ export default async () => {
             { fireImmediately: true }, // run once with current value
           )
         })
-        // const response: any = await Promise.race([timeout, send, checker])
-        const response: any = await Promise.race([send])
+        const response: any = await Promise.race([timeout, send, checker])
+        // const response: any = await Promise.race([send])
         console.log('updating task', response?.data)
         if (response?.data) {
           return { success: true, taskId: task.taskId }
