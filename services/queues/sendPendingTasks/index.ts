@@ -59,9 +59,9 @@ export default async () => {
           }, 60000),
         )
 
-        console.log('task', task.taskId)
+        console.log('task', task)
         console.log('newStatus', newStatus)
-        const send = changeTaskStatus(task.taskId, task, taskTypes, signal)
+        const send = changeTaskStatus(task._id, task, taskTypes, signal)
 
         const checker = new Promise<never>((_, reject) => {
           let settled = false

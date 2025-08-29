@@ -72,7 +72,7 @@ export const startQueueLoop = async () => {
       console.log('updatedImages', updatedImages.length)
       console.log('updatedTasks', updatedTasks)
       const nexto = getNextTask()
-      console.log('nexto', nexto)
+      // console.log('nexto', nexto)
       if (!nexto) {
         // await NotificationService.dismissAllNotification()
         // NotificationService.sendCompletedUploadPendingTaskNotification()

@@ -46,38 +46,61 @@ export const changeTaskStatus = async (
   taskTypes: any[] = [], //TODO Add types for taskTypes
   signal?: AbortSignal,
 ) => {
-  const typeLabelToKey = Object.fromEntries(
-    taskTypes.map((item) => [item.label, item.key]),
-  )
-  const typeKey = typeLabelToKey[wholeTask.taskType] ?? wholeTask.taskType
+  try {
+    const typeLabelToKey = Object.fromEntries(
+      taskTypes.map((item) => [item.label, item.key]),
+    )
+    const typeKey = typeLabelToKey[wholeTask.taskType] ?? wholeTask.taskType
 
-  const endpoint = API.ENDPOINTS.TASKS.UPDATE.replace(':id', taskId.toString())
+    const endpoint = API.ENDPOINTS.TASKS.UPDATE.replace(
+      ':id',
+      taskId.toString(),
+    )
 
-  const response = await client.put(
-    endpoint,
-    {
-      ...wholeTask,
-      taskType: typeKey,
-    },
-    {
-      headers: {
-        'x-request-context': 'mobile',
+    // console.log({
+    //   ...wholeTask,
+    //   taskType: typeKey,
+    // })
+    const response = await client.put(
+      endpoint,
+      {
+        ...wholeTask,
+        taskType: typeKey,
       },
-      signal,
-    },
-  )
+      {
+        headers: {
+          'x-request-context': 'mobile',
+        },
+        signal,
+      },
+    )
 
-  // console.log('response', response.data)
-  // Check if response.data is a string and looks like HTML
-  if (
-    typeof response.data === 'string' &&
-    response.data.trim().startsWith('<')
-  ) {
-    return null
+    console.log('response TASK', response.data)
+    // Check if response.data is a string and looks like HTML
+    if (
+      typeof response.data === 'string' &&
+      response.data.trim().startsWith('<')
+    ) {
+      return null
+    }
+
+    console.log('TASK RESPO', response)
+    return response
+  } catch (error: any) {
+    if (error.response) {
+      console.error('Axios Error Response:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers,
+      })
+    } else if (error.request) {
+      console.error('Axios Error Request:', error.request)
+    } else {
+      console.error('General Error:', error.message)
+    }
+
+    return null // or throw error if you want to handle it upstream
   }
-
-  console.log('TASK RESPO', response)
-  return response
 }
 
 export const getTaskStatus = async (

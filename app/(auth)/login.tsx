@@ -4,6 +4,7 @@ import { BASE_URLS } from '@/constants/api'
 import { useAppTheme } from '@/hooks/useAppTheme'
 import { useLogin } from '@/queries/useAuth'
 import useAuthStore from '@/store/auth'
+import useTaskStore from '@/store/tasks'
 import { Ionicons } from '@expo/vector-icons'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Image } from 'expo-image'
@@ -29,7 +30,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 
 export default function Login() {
   const { setEnvState, SetBaseUrl, envState } = useAuthStore()
-  const { isDark } = useAppTheme()
+  const { pendingTasks } = useTaskStore()
+  console.log('pendingTasks', pendingTasks)
+  const { colors, isDark } = useAppTheme()
   const router = useRouter()
   const onLogin = useLogin()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -100,6 +103,11 @@ export default function Login() {
   const dismissKeyboard = () => {
     Keyboard.dismiss()
   }
+
+  // Gradient colors from task-detail.tsx
+  const gradientColors = isDark
+    ? ['#667EEA', '#764BA2']
+    : ['#4F46E5', '#7C3AED']
 
   return (
     <TouchableWithoutFeedback onPress={dismissKeyboard}>
