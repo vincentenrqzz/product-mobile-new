@@ -33,33 +33,58 @@ export default function AppLayout() {
   const queryResults = useQueries({
     queries: [
       {
-        queryKey: ['userSettings', user],
-        queryFn: getUserSettings,
+        queryKey: ['userSettingss', user],
+        queryFn: async () => {
+          const response = await getUserSettings()
+          setUserSettings(response)
+          return response
+        },
         enabled: !!user,
       },
       {
-        queryKey: ['taskTypes', user],
-        queryFn: getTaskTypes,
+        queryKey: ['taskTypess', user],
+        queryFn: async () => {
+          const response = await getTaskTypes()
+          setTaskTypes(response)
+          return response
+        },
         enabled: !!user,
       },
       {
-        queryKey: ['taskList', user],
-        queryFn: getAllTasks,
+        queryKey: ['taskLists', user],
+        queryFn: async () => {
+          const response = await getAllTasks()
+          setTaskList(response)
+          return response
+        },
         enabled: !!user,
       },
       {
-        queryKey: ['taskStatuses', user],
-        queryFn: getTaskStatuses,
+        queryKey: ['taskStatusess', user],
+        queryFn: async () => {
+          const response = await getTaskStatuses()
+          setTaskStatuses(response)
+          return response
+        },
         enabled: !!user,
       },
       {
-        queryKey: ['taskDetails', user],
-        queryFn: getTaskDetails,
+        queryKey: ['taskDetailss', user],
+        queryFn: async () => {
+          const response = await getTaskDetails()
+          setTaskDetails(response)
+          return response
+        },
         enabled: !!user,
       },
       {
-        queryKey: ['forms', user],
-        queryFn: getForms,
+        queryKey: ['formss', user],
+        queryFn: async () => {
+          const response = await getForms()
+          console.log('FORMSSDSA')
+          setForms(response)
+          return response
+        },
         enabled: !!user,
       },
     ],
@@ -96,12 +121,12 @@ export default function AppLayout() {
     // console.log('userSettings', userSettings)
     const dataMap = [
       { data: user, setData: setUserInfo },
-      { data: userSettings || [], setData: setUserSettings },
-      { data: taskTypes || [], setData: setTaskTypes },
-      { data: taskList || null, setData: setTaskList },
-      { data: taskStatuses || [], setData: setTaskStatuses },
-      { data: taskDetails || [], setData: setTaskDetails },
-      { data: forms || [], setData: setForms },
+      // { data: userSettings || [], setData: setUserSettings },
+      // { data: taskTypes || [], setData: setTaskTypes },
+      // { data: taskList || null, setData: setTaskList },
+      // { data: taskStatuses || [], setData: setTaskStatuses },
+      // { data: taskDetails || [], setData: setTaskDetails },
+      // { data: forms || [], setData: setForms },
     ]
 
     dataMap.forEach(({ data, setData }) => {

@@ -12,8 +12,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { useColorScheme } from '@/hooks/useColorScheme'
 import { initTaskQueueSystem } from '@/services/queues'
+import useAuthStore from '@/store/auth'
+import useTaskStore from '@/store/tasks'
 import { Ionicons } from '@expo/vector-icons'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
+import { useQueryClient } from '@tanstack/react-query'
 import { BlurView } from 'expo-blur'
 
 type IconName = keyof typeof Ionicons.glyphMap
@@ -243,9 +246,48 @@ const TabItem: React.FC<TabItemProps> = ({
 
 // Main Tab Layout Component
 export default function TabLayout() {
+  const { isLoggedIn } = useAuthStore()
+  const queryClient = useQueryClient()
+
+  const onRefetchTask = async () => {
+    try {
+      const keys: string[][] = [
+        ['userSettingss'],
+        ['taskTypess'],
+        ['taskLists'],
+        ['taskStatusess'],
+        ['taskDetailss'],
+        ['formss'],
+      ]
+
+      await Promise.all(
+        keys.map((key) => queryClient.invalidateQueries({ queryKey: key })),
+      )
+    } catch (error) {
+      console.error('Failed to refetch tasks:', error)
+    } finally {
+      console.log('done QUEUES ')
+    }
+  }
+
   useEffect(() => {
     initTaskQueueSystem()
   }, [])
+
+  useEffect(() => {
+    const unsubscribe = useTaskStore.subscribe(
+      (s) => s.pendingTasks.length,
+      async (len, prevLen) => {
+        if (prevLen > 0 && len === 0 && isLoggedIn) {
+          onRefetchTask()
+        }
+      },
+    )
+
+    return () => {
+      unsubscribe()
+    }
+  }, [isLoggedIn])
 
   return (
     <Tabs

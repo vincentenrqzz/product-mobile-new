@@ -310,12 +310,12 @@ export default function Tasks() {
       setIsLoading(true)
 
       const keys: string[][] = [
-        ['userSettings'],
-        ['taskTypes'],
-        ['taskList'],
-        ['taskStatuses'],
-        ['taskDetails'],
-        ['forms'],
+        ['userSettingss'],
+        ['taskTypess'],
+        ['taskLists'],
+        ['taskStatusess'],
+        ['taskDetailss'],
+        ['formss'],
       ]
 
       await Promise.all(

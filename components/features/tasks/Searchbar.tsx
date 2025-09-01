@@ -106,7 +106,7 @@ const Searchbar = ({
               colors={
                 isDark
                   ? ['rgba(55, 65, 81, 0.9)', 'rgba(75, 85, 99, 0.9)']
-                  : ['rgba(255, 255, 255, 0.9)', 'rgba(248, 250, 255, 0.8)']
+                  : ['rgba(255, 255, 255, 1)', 'rgba(248, 250, 255, 1)']
               }
               style={[
                 styles.searchInputBackground,

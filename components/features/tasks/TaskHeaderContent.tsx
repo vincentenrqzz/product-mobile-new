@@ -1,20 +1,19 @@
 import AppLogo from '@/components/ui/AppLogo'
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons'
+import { useAppTheme } from '@/hooks/useAppTheme'
+import { MaterialCommunityIcons } from '@expo/vector-icons'
+import { LinearGradient } from 'expo-linear-gradient'
+import moment from 'moment'
 import 'moment/locale/en-gb'
 import 'moment/locale/he'
 import React from 'react'
-import { Text, TouchableOpacity, View, StyleSheet } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
-import Animated, { 
-  FadeInRight, 
-  useAnimatedStyle, 
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import Animated, {
+  FadeInRight,
+  useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
-  withRepeat,
-  withSequence
 } from 'react-native-reanimated'
-import { useAppTheme } from '@/hooks/useAppTheme'
-import moment from 'moment'
 
 interface TaskHeaderContentProps {
   timeNow: string
@@ -39,12 +38,12 @@ const TaskHeaderContent: React.FC<TaskHeaderContentProps> = ({
 
   // Animated button styles
   const animatedButtonStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: buttonScale.value }]
+    transform: [{ scale: buttonScale.value }],
   }))
 
   const pulseStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulseAnim.value }],
-    opacity: pulseAnim.value > 1 ? 0.7 : 1
+    opacity: pulseAnim.value > 1 ? 0.7 : 1,
   }))
 
   const handlePressIn = () => {
@@ -56,44 +55,50 @@ const TaskHeaderContent: React.FC<TaskHeaderContentProps> = ({
     // Add pulse animation
     pulseAnim.value = withSequence(
       withSpring(1.2, { duration: 150 }),
-      withSpring(1, { duration: 150 })
+      withSpring(1, { duration: 150 }),
     )
   }
 
   const currentTime = moment().format('dddd, MMM DD')
-  const greeting = moment().hour() < 12 ? 'Good Morning' : 
-                   moment().hour() < 17 ? 'Good Afternoon' : 'Good Evening'
+  const greeting =
+    moment().hour() < 12
+      ? 'Good Morning'
+      : moment().hour() < 17
+        ? 'Good Afternoon'
+        : 'Good Evening'
+
+  const formatted = moment(timeNow, 'DD/MM/YYYY HH:mm').format('HH:mm')
 
   return (
     <View style={styles.container}>
       {/* Main Header Row */}
       <View style={styles.headerRow}>
         {/* Left Side - Logo and Info */}
-        <Animated.View 
+        <Animated.View
           entering={FadeInRight.duration(600)}
           style={styles.leftSection}
         >
           <View style={styles.logoContainer}>
             <AppLogo />
           </View>
-          
+
           <View style={styles.infoSection}>
-            <Text 
+            <Text
               style={[
-                styles.greetingText, 
-                { color: isDark ? colors.text : '#4A5568' }
+                styles.greetingText,
+                { color: isDark ? colors.text : '#4A5568' },
               ]}
             >
               {greeting}
             </Text>
             {timeNow && (
-              <Text 
+              <Text
                 style={[
-                  styles.timeText, 
-                  { color: isDark ? colors.text : '#2D3748' }
+                  styles.timeText,
+                  { color: isDark ? colors.text : '#2D3748' },
                 ]}
               >
-                {currentTime} • {timeNow ? moment(new Date(timeNow)).format('HH:mm') : ''}
+                {currentTime} • {timeNow ? formatted : ''}
               </Text>
             )}
           </View>
@@ -102,39 +107,35 @@ const TaskHeaderContent: React.FC<TaskHeaderContentProps> = ({
         {/* Right Side - Action Button */}
         <Animated.View entering={FadeInRight.duration(600).delay(200)}>
           <Animated.View style={animatedButtonStyle}>
-          <TouchableOpacity
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            activeOpacity={0.8}
-            style={styles.addButtonContainer}
-          >
-            <LinearGradient
-              colors={
-                isDark
-                  ? ['#667EEA', '#764BA2']
-                  : ['#4F46E5', '#7C3AED']
-              }
-              style={styles.addButton}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
+            <TouchableOpacity
+              onPressIn={handlePressIn}
+              onPressOut={handlePressOut}
+              activeOpacity={0.8}
+              style={styles.addButtonContainer}
             >
-              <Animated.View style={pulseStyle}>
-                <MaterialCommunityIcons 
-                  name="plus" 
-                  size={18} 
-                  color="white"
-                />
-              </Animated.View>
-            </LinearGradient>
-            
-            {/* Floating Action Button Shadow */}
-            <View style={[
-              styles.buttonShadow,
-              {
-                shadowColor: isDark ? '#667EEA' : '#4F46E5',
-              }
-            ]} />
-          </TouchableOpacity>
+              <LinearGradient
+                colors={
+                  isDark ? ['#667EEA', '#764BA2'] : ['#4F46E5', '#7C3AED']
+                }
+                style={styles.addButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+              >
+                <Animated.View style={pulseStyle}>
+                  <MaterialCommunityIcons name="plus" size={18} color="white" />
+                </Animated.View>
+              </LinearGradient>
+
+              {/* Floating Action Button Shadow */}
+              <View
+                style={[
+                  styles.buttonShadow,
+                  {
+                    shadowColor: isDark ? '#667EEA' : '#4F46E5',
+                  },
+                ]}
+              />
+            </TouchableOpacity>
           </Animated.View>
         </Animated.View>
       </View>
